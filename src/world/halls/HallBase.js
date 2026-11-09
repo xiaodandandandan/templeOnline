@@ -19,8 +19,9 @@ export function createHallBase({
   scene.add(shell.group);
 
   const interactives = [];
-  const blockers = [];
+  const blockers = [...shell.blockers];
   const updaters = [];
+  const cushionSets = [];
   const spawn = { x: 0, z: spawnZ ?? d / 2 - 3.2, yaw: 0 };
 
   interactives.push({
@@ -47,7 +48,7 @@ export function createHallBase({
   }
 
   function addCushions({ x = 0, z, count = 3, spacing = 1.0, y = 0.02 }) {
-    createCushionSet(scene, { x, z, count, spacing, y });
+    cushionSets.push({x,z,points:createCushionSet(scene, { x, z, count, spacing, y })});
   }
 
   function addDais({ x = 0, z, width, depth = 7, height = 0.35 }) {
@@ -60,10 +61,11 @@ export function createHallBase({
   }
 
   function addPoint({ id: pid, name: pname, x, z, statueX, statueZ, hall = name }) {
-    interactives.push({
-      id: pid, type: 'cushion', name: pname, hall,
-      label: `跪拜 · ${pname}`,
-      x, z, statueX, statueZ, radius: 2.6,
+    const set=cushionSets.find(c=>c.x===x && c.z===z);
+    for(const [i,p] of (set?.points||[{x,z}]).entries()) interactives.push({
+      id:pid+':'+i,type:'cushion',name:pname,hall,label:'跪拜 · '+pname,
+      x:p.x,z:p.z,statueX,statueZ,radius:1.1,
+      setX:x,seatIndex:i,seatCount:set?.points.length||1,
     });
   }
 
@@ -91,6 +93,7 @@ export function createHallBase({
       name,
       subtitle,
       scene,
+      shell:shell.group,shellBlockers:shell.blockers,dimensions:{w,d,h},
       spawn,
       bounds: {
         minX: -w / 2 + 1.7, maxX: w / 2 - 1.7,

@@ -1,6 +1,8 @@
+import { disposeMap } from './SceneResources.js';
 import { T } from './Textures.js';
 
 const LOADERS = {
+  wuguan: () => import('../world/halls/Wuguan.js'),
   outdoor: () => import('../world/Outdoor.js'),
   shijia: () => import('../world/halls/Shijia.js'),
   chaoyin: () => import('../world/halls/Chaoyin.js'),
@@ -25,6 +27,17 @@ export class MapManager {
     const map = mod.create(this.ctx);
     this.maps.set(id, map);
     return map;
+  }
+
+  trim(activeId, avatar) {
+    while(this.maps.size>3) {
+      const id=[...this.maps.keys()].find(k=>k!==activeId && k!=='outdoor');
+      if(!id) break;
+      const map=this.maps.get(id);
+      if(avatar.parent===map.scene) map.scene.remove(avatar);
+      disposeMap(map);
+      this.maps.delete(id);
+    }
   }
 
   has(id) {

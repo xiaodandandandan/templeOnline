@@ -8,7 +8,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 export class Engine {
   constructor(container) {
     this.container = container;
-    this.lowQuality = new URLSearchParams(window.location.search).get('quality') === 'low';
+    const quality = new URLSearchParams(window.location.search).get('quality');
+    this.lowQuality = quality === 'low' || (quality !== 'high' && window.matchMedia('(pointer: coarse)').matches);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',

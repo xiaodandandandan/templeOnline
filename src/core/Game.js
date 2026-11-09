@@ -67,12 +67,15 @@ export class Game {
     this.input.started = true;
     this.hud.hideStart();
     this.hud.setZone(this.map.name, this.map.subtitle);
-    this.input.requestLock();
+    // Drag-to-look works in embedded browsers without pointer lock.
   }
 
   async goTo(id, spawn, { instant = false } = {}) {
     if (this.transitioning) return;
     this.transitioning = true;
+    const previous = this.map;
+    const previousSpawn = {x:this.player.position.x,z:this.player.position.z,yaw:this.player.yaw};
+    try {
     if (!instant) await this.hud.fadeOut();
 
     const map = await this.maps.get(id);
@@ -85,14 +88,29 @@ export class Game {
 
     if (this.started) this.hud.setZone(map.name, map.subtitle);
     if (!instant) await this.hud.fadeIn();
-    this.transitioning = false;
+    this.maps.trim(id, this.player.avatar.root);
+    } catch (err) {
+      if(previous) {
+        this.map=previous;
+        this.player.attach(previous,previousSpawn);
+        this.engine.setScene(previous.scene);
+        previous.scene.add(this.player.avatar.root);
+        this._applyEnvironment();
+      }
+      console.error('[径山寺] 切换失败', err);
+      this.hud.toast('进入失败，请重试');
+      await this.hud.fadeIn();
+      if (!this.map) throw err;
+    } finally {
+      this.transitioning = false;
+    }
   }
 
   update(dt, t) {
     if (!this.map) return;
     this.map.update(dt, t);
     this.minimap.update(this.map, this.player, t);
-    if (!this.started) return;
+    if (!this.started || this.transitioning) return;
 
     this.player.update(dt, this.input, this.map);
     if (this.transitioning || this.player.bowing) {
@@ -129,7 +147,7 @@ export class Game {
     }
 
     if (target.type === 'exit') {
-      const cfg = OUTDOOR.entrances.find((e) => e.id === this.map.id);
+      const cfg = [...OUTDOOR.entrances, ...OUTDOOR.scenery].find((e) => e.id === this.map.id);
       const back = cfg
         ? { x: cfg.input.x, z: cfg.input.z, yaw: Math.PI }
         : OUTDOOR.spawn;

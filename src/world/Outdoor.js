@@ -1,3 +1,4 @@
+import { installHall } from './OpenHalls.js';
 import * as THREE from 'three';
 import { OUTDOOR } from '../config/halls.js';
 import { M, plaqueMaterial } from './Materials.js';
@@ -16,7 +17,7 @@ function heightAt(z) {
       return b.y0 + (b.y1 - b.y0) * t;
     }
   }
-  return z > 47 ? 0 : 3.35;
+  return z > OUTDOOR.bands[0].z0 ? 0 : 3.35;
 }
 
 const STAIR_HALF = 4.5;
@@ -37,7 +38,7 @@ function terrainHeight(z, x = 0) {
     const i = Math.min(STAIR_STEPS - 1, Math.max(0, Math.floor((southZ - z) / stepD)));
     return Math.max(0.1, southY + (northY - southY) * (i + 1) / STAIR_STEPS + 0.012);
   }
-  return z > 47 ? 0 : 3.35;
+  return z > OUTDOOR.bands[0].z0 ? 0 : 3.35;
 }
 
 function buildTerraces(g, blockers, surfaces) {
@@ -52,7 +53,7 @@ function buildTerraces(g, blockers, surfaces) {
       // 台阶两侧补平台，中央留给阶梯
       if (low > 0.01) {
         for (const side of [-1, 1]) {
-          box(g, 17.5, low, depth, side * 13.25, low / 2, cz, M.stone, { cast: false });
+          box(g, 42.5, low, depth, side * 25.75, low / 2, cz, M.stone, { cast: false });
         }
       }
       const southZ = Math.max(b.z0, b.z1);
@@ -74,10 +75,10 @@ function buildTerraces(g, blockers, surfaces) {
       if (rise > 0.2 && rise <= 0.8) {
         const midY = low + rise / 2;
         for (const side of [-1, 1]) {
-          box(g, 20, rise / 2, 0.6, side * 14.5, low + rise / 4, northZ + 0.3, M.stoneStep, { cast: false });
+          box(g, 42.5, rise / 2, 0.6, side * 25.75, low + rise / 4, northZ + 0.3, M.stoneStep, { cast: false });
           surfaces.push({
-            minX: side < 0 ? -24.5 : 4.5,
-            maxX: side < 0 ? -4.5 : 24.5,
+            minX: side < 0 ? -47 : 4.5,
+            maxX: side < 0 ? -4.5 : 47,
             minZ: northZ,
             maxZ: northZ + 0.6,
             y: midY,
@@ -86,12 +87,12 @@ function buildTerraces(g, blockers, surfaces) {
       }
     } else {
       if (low > 0.01) {
-        box(g, 50, low, depth, 0, low / 2, cz, M.stone, { cast: false });
+        box(g, 94, low, depth, 0, low / 2, cz, M.stone, { cast: false });
       }
       // paved axis
       plane(g, 9, depth - 0.05, 0, b.y0 + 0.015, cz, M.path, [-Math.PI / 2, 0, 0]);
-      plane(g, 20, depth - 0.05, -14.5, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
-      plane(g, 20, depth - 0.05, 14.5, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
+      plane(g, 42.5, depth - 0.05, -25.75, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
+      plane(g, 42.5, depth - 0.05, 25.75, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
     }
   }
 }
@@ -187,7 +188,7 @@ function buildHall(g, cfg, blockers, surfaces) {
     });
   }
 
-  buildPreview(g2, cfg, { baseY, plinth, wallH, doorW });
+  plane(g2,w-.5,d-.5,0,fp+.005,0,M.floorWood,[-Math.PI/2,0,0]);
 
   const plaqueH = Math.min(1.1, wallH * 0.2);
   plaque(g2, cfg.name, {
@@ -229,11 +230,14 @@ function buildHall(g, cfg, blockers, surfaces) {
     cylinder(g2, 0.045, 0.03, 0.34, lx, ly + 2.36, lz, M.lacquerDark, 6, { cast: false });
   }
 
-  // 只挡住墙体本身（外扩 0.3m），让角色能走上殿前石阶、站到门口
-  blockers.push({
-    minX: x - w / 2 - 0.3, maxX: x + w / 2 + 0.3,
-    minZ: z - d / 2 - 0.3, maxZ: z + d / 2 + 0.3,
-  });
+  // Separate walls leave the actual doorway walkable.
+  const wall=(minX,maxX,minZ,maxZ)=>blockers.push({minX:x+minX,maxX:x+maxX,minZ:z+minZ,maxZ:z+maxZ});
+  wall(-w/2-.25,-w/2+.25,-d/2,d/2);
+  wall(w/2-.25,w/2+.25,-d/2,d/2);
+  wall(-w/2,w/2,-d/2-.25,-d/2+.25);
+  wall(-w/2,-openW/2,d/2-.25,d/2+.25);
+  wall(openW/2,w/2,d/2-.25,d/2+.25);
+  for(const cx of [-w/2+.55,-w/2*.44,w/2*.44,w/2-.55]) wall(cx-.36,cx+.36,d/2-.11,d/2+.61);
 }
 
 /* ------------------------- 山门（按径山寺实景重建） ------------------------- */
@@ -471,12 +475,12 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
     g2.add(fill);
   }
 
-  interactives.push({
-    id: 'mile', type: 'cushion', name: '弥勒菩萨', hall: '天王殿',
+  for(const dx of [-.98,0,.98]) interactives.push({
+    id: 'mile:'+dx, type: 'cushion', name: '弥勒菩萨', hall: '天王殿',
     label: '跪拜 · 弥勒菩萨',
-    x, z: z + 1.05,
+    x:x+dx, z: z + 1.05,
     statueX: x, statueZ: z - 2.55,
-    radius: 2.8,
+    radius: 1.1,
   });
 
   // 朱红立柱
@@ -653,7 +657,7 @@ function buildGarden(g, blockers, interactives, updaters, surfaces) {
 function buildScenery(g) {
   for (let i = 0; i < 16; i++) {
     const side = i % 2 ? 1 : -1;
-    const px = side * (26 + (i % 4) * 4.2);
+    const px = side * (49 + (i % 4) * 4.2);
     const pz = 42 - Math.floor(i / 2) * 13.5;
     pineTree(g, { x: px, y: -0.06, z: pz, scale: 0.9 + (i % 3) * 0.25, seed: i + 3 });
   }
@@ -704,7 +708,7 @@ export function create(ctx) {
   const sky = new THREE.Mesh(new THREE.SphereGeometry(190, 32, 20), skyMat);
   scene.add(sky);
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(220, 220), M.earth);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(320, 320), M.earth);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.08;
   ground.receiveShadow = true;
@@ -735,22 +739,13 @@ export function create(ctx) {
       continue;
     }
     buildHall(world, cfg, blockers, surfaces);
-    interactives.push({
-      id: `enter:${cfg.id}`,
-      type: 'enter',
-      name: cfg.name,
-      hall: cfg.sub,
-      label: `入殿 · ${cfg.name}`,
-      x: cfg.input.x, z: cfg.input.z,
-      radius: 3.2,
-      target: cfg.id,
-      back: { x: cfg.input.x, z: cfg.input.z, yaw: Math.PI },
-    });
+    installHall(world,cfg,blockers,surfaces,interactives,updaters);
   }
 
   // 祖堂、五观堂等纯景观建筑（不设拜位），配置与小地图共用
   for (const cfg of OUTDOOR.scenery) {
     buildHall(world, cfg, blockers, surfaces);
+    installHall(world,cfg,blockers,surfaces,interactives,updaters);
   }
 
   buildWall(world, blockers);
@@ -762,10 +757,10 @@ export function create(ctx) {
   sun.position.set(38, 62, 28);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.left = -55;
-  sun.shadow.camera.right = 55;
-  sun.shadow.camera.top = 65;
-  sun.shadow.camera.bottom = -55;
+  sun.shadow.camera.left = -90;
+  sun.shadow.camera.right = 90;
+  sun.shadow.camera.top = 100;
+  sun.shadow.camera.bottom = -100;
   sun.shadow.camera.near = 1;
   sun.shadow.camera.far = 160;
   sun.shadow.bias = -0.0002;

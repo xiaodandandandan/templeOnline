@@ -4,6 +4,7 @@ import { box, torus, sphere } from './Props.js';
 
 export function createCushion({ x = 0, z = 0, y = 0, scale = 1, rot = 0 }) {
   const g = new THREE.Group();
+  g.userData.isCushion = true;
   g.position.set(x, y, z);
   g.scale.setScalar(scale);
   g.rotation.y = rot;
@@ -23,7 +24,7 @@ export function createCushionSet(parent, { x = 0, z = 0, count = 3, spacing = 0.
     parent.add(createCushion({ x, z, y, scale }));
     return [{ x, z }];
   }
-  const offsets = count === 3 ? [-spacing, 0, spacing] : [0];
+  const offsets = Array.from({length:count}, (_,i)=>(i-(count-1)/2)*spacing);
   const out = [];
   for (const dx of offsets) {
     parent.add(createCushion({ x: x + dx, z, y, scale }));

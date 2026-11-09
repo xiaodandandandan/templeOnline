@@ -4,7 +4,7 @@ import { createAvatar } from '../world/Avatar.js';
 const RADIUS = 0.36;
 const MAX_STEP = 0.42;
 const CAM_DIST = 4.6;
-const CAM_MIN = 2.4;
+const CAM_MIN = 0.25;
 const TARGET_H = 1.2;
 const PITCH_MIN = -0.86;
 const PITCH_MAX = 0.58;
@@ -100,15 +100,20 @@ export class Player {
 
     // 第三人称环绕相机：位于小人斜后方，遇墙自动收近
     const side = 0.55;
-    let dist = CAM_DIST;
+    let dist = CAM_MIN;
     let camX = x;
     let camZ = z;
-    for (; dist >= CAM_MIN; dist -= 0.18) {
-      const horiz = dist * Math.cos(this.pitch);
-      camX = x + Math.sin(this.yaw) * horiz + Math.cos(this.yaw) * side;
-      camZ = z + Math.cos(this.yaw) * horiz - Math.sin(this.yaw) * side;
-      if (!this.map || !cameraBlocked(this.map, camX, camZ)) break;
+    for (let candidate = 0.08; candidate <= CAM_DIST; candidate += 0.08) {
+      const horiz = candidate * Math.cos(this.pitch);
+      const shoulder = side * Math.min(1, candidate / CAM_DIST);
+      const cx = x + Math.sin(this.yaw) * horiz + Math.cos(this.yaw) * shoulder;
+      const cz = z + Math.cos(this.yaw) * horiz - Math.sin(this.yaw) * shoulder;
+      if (this.map && cameraBlocked(this.map, cx, cz)) break;
+      dist = candidate;
+      camX = cx;
+      camZ = cz;
     }
+    this.avatar.root.visible = dist > 0.65;
     const ty = y + TARGET_H;
     const floor = this.map ? this.map.floorHeight(camZ, camX) : 0;
     const camY = Math.max(y + 0.4, floor + 0.24, ty + 0.95 - Math.sin(this.pitch) * dist);

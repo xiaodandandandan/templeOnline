@@ -22,14 +22,15 @@
       <div class="brand-sub" id="zoneSub">五进中轴 · 庭院</div>
     </div>
   </div>
-  <div class="minimap">
-    <canvas id="minimapCanvas" width="340" height="600"></canvas>
+  <div class="map-widget">
+    <button id="mapToggle" class="map-toggle" aria-expanded="false" aria-controls="mapPanel" aria-label="展开地图" title="展开地图">图</button>
+    <div id="mapPanel" class="minimap" hidden><canvas id="minimapCanvas" width="340" height="600"></canvas></div>
   </div>
 </div>
 
 <div class="hint" id="hint">
   <b>W A S D</b> 行走 · <b>Shift</b> 快走<br />
-  <b>鼠标</b> 环绕小人 · <b>E</b> 互动 · <b>空格</b> 合十拜拜
+  <b>鼠标拖动</b> 环绕小人 · <b>E</b> 互动 · <b>空格</b> 合十拜拜
 </div>
 
 <div class="zone" id="zone"><strong>径山寺</strong><small>五进中轴 · 庭院</small></div>
@@ -50,7 +51,7 @@
     <div class="start-line"></div>
     <div class="start-desc">
       沿五进中轴拾阶而上，五凤山门、释迦宝殿、潮音堂，直至凌霄阁。<br />
-      行至殿前按 E 入殿；走到蒲团前按 E 跪拜，按空格合十拜拜；也可站定后按空格合十。
+      直接步行进入殿堂；走到蒲团前按 E 跪拜，按空格合十拜拜；也可站定后按空格合十。
     </div>
     <button id="enter" class="enter">入 山</button>
     <div class="start-note" id="startNote">点击后拖动鼠标环绕视角，按 Esc 释放鼠标</div>

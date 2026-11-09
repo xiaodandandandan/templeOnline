@@ -3,7 +3,7 @@ import { M } from './Materials.js';
 import { box } from './Props.js';
 
 /**
- * Minecraft 风游客：方头方身、像素五官、短袖短裤、双肩包。
+ * Minecraft 风游客：方头方身、像素五官、短袖短裤、运动鞋。
  * 1 格当 1 米，总高约 1.8m；局部 +Z 为正面，Player 按 facing 旋转。
  * 支持行走、奔跑、跪坐、合十与拜拜。
  */
@@ -57,12 +57,6 @@ export function createAvatar() {
     box(arm, 0.22, 0.40, 0.22, 0, -0.42, 0, M.touristSkin, { cast: false });
     box(arm, 0.22, 0.10, 0.22, 0, -0.66, 0, M.touristSkin, { cast: false });
   }
-
-  // 双肩包（保证背面视图也有内容）
-  box(torso, 0.34, 0.42, 0.18, 0, 0.30, -0.21, M.touristPack);
-  box(torso, 0.30, 0.08, 0.20, 0, 0.53, -0.21, M.touristPack, { cast: false });
-  box(torso, 0.05, 0.36, 0.04, -0.13, 0.30, 0.13, M.touristPack, { cast: false });
-  box(torso, 0.05, 0.36, 0.04, 0.13, 0.30, 0.13, M.touristPack, { cast: false });
 
   // ---------------- 方块头 ----------------
   box(torso, 0.46, 0.46, 0.46, 0, HEAD_Y, 0, M.touristSkin);

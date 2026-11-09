@@ -77,7 +77,7 @@ export const OUTDOOR = {
     },
     {
       id: 'wuguan', name: '五观堂', sub: '素面',
-      x: -22.0, z: 26.0, w: 4.4, d: 4.0, h: 4.6, platform: 0.55, tiers: 1, plinth: 0.35,
+      x: -24.5, z: 26.0, w: 13, d: 10, h: 6.4, platform: 0.55, tiers: 1, plinth: 0.35,
     },
   ],
   garden: {
@@ -98,3 +98,22 @@ export const HALLS = {
   caishen: { name: '财神殿', subtitle: '福德财神', total: 1 },
   outdoor: { name: '径山寺', subtitle: '五进中轴 · 庭院', total: 1 },
 };
+
+// Expand courtyards without stretching architecture or changing terrace heights.
+const spreadZ = z => 60 + (z - 60) * 1.4;
+for (const b of OUTDOOR.bands) { b.z0=spreadZ(b.z0); b.z1=spreadZ(b.z1); }
+for (const b of [...OUTDOOR.entrances,...OUTDOOR.scenery]) {
+  const oldZ=b.z; b.x*=1.5; b.z=spreadZ(oldZ);
+  if(b.doorZ!=null) b.doorZ=b.z+(b.doorZ-oldZ);
+  if(b.input) { b.input.x=b.x; b.input.z=b.z+(b.input.z-oldZ); }
+}
+OUTDOOR.bounds={minX:-46,maxX:46,minZ:spreadZ(-56),maxZ:60};
+OUTDOOR.garden.x*=1.5;
+const gardenZ=OUTDOOR.garden.z;
+OUTDOOR.garden.z=spreadZ(gardenZ);
+OUTDOOR.garden.input.x=OUTDOOR.garden.x;
+OUTDOOR.garden.input.z=OUTDOOR.garden.z+(OUTDOOR.garden.input.z-gardenZ);
+
+const diningHall=OUTDOOR.scenery.find(b=>b.id==='wuguan');
+diningHall.input={x:diningHall.x,z:diningHall.z+diningHall.d/2+2};
+HALLS.wuguan={name:'五观堂',subtitle:'素面用餐区',total:0};

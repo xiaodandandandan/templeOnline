@@ -13,6 +13,7 @@ export function buildRoomShell({
   door = true,
 }) {
   const g = new THREE.Group();
+  const blockers = [];
   const halfW = w / 2;
   const halfD = d / 2;
 
@@ -63,6 +64,7 @@ export function buildRoomShell({
   const cols = Math.max(2, Math.round(d / 5));
   for (let i = 0; i <= cols; i++) {
     const z = -halfD + 2.2 + ((d - 4.4) / cols) * i;
+    for (const x of [-halfW + 1.5, halfW - 1.5]) blockers.push({minX:x-.5,maxX:x+.5,minZ:z-.5,maxZ:z+.5});
     column(g, { x: -halfW + 1.5, z, h: h - 0.6, radius: 0.42 });
     column(g, { x: halfW - 1.5, z, h: h - 0.6, radius: 0.42 });
   }
@@ -70,6 +72,7 @@ export function buildRoomShell({
   column(g, { x: -halfW + 3.0, z: -halfD + 2.2, h: h - 0.6, radius: 0.44 });
   column(g, { x: halfW - 3.0, z: -halfD + 2.2, h: h - 0.6, radius: 0.44 });
 
+  for (const x of [-halfW + 3, halfW - 3]) blockers.push({minX:x-.52,maxX:x+.52,minZ:-halfD+1.68,maxZ:-halfD+2.72});
   // front doors (seen from inside when turning around)
   if (door) {
     doorSet(g, { x: 0, y: 0, z: halfD - 0.28, width: Math.min(4.2, w * 0.18), height: Math.min(5.2, h * 0.5) });
@@ -87,5 +90,5 @@ export function buildRoomShell({
   g.add(hemi);
 
   const exitPos = { x: 0, z: halfD - 2.1 };
-  return { group: g, exitPos };
+  return { group: g, exitPos, blockers };
 }

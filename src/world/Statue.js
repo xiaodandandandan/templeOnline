@@ -1,3 +1,5 @@
+import { createBudai } from './Budai.js';
+import { batchStatue } from './BatchStatue.js';
 import * as THREE from 'three';
 import { M } from './Materials.js';
 import { box, beamBetween } from './Props.js';
@@ -384,7 +386,7 @@ export function createStatue(opts = {}) {
         new THREE.Vector3(sd * 0.42 * s, 3.95 * s, -0.12 * s), 0.07 * s, sc.trim, 4);
     }
   }
-  return g;
+  return batchStatue(g);
 }
 
 /* ======================= 水月观音组像（实景参考） ======================= */
@@ -686,7 +688,7 @@ export function createRoyalGuanyin({ scale = 1.55 } = {}) {
   royalHalo(g, s);
   royalBody(g, s);
   royalHead(g, s);
-  return g;
+  return batchStatue(g);
 }
 
 /* 龙女头部：高髻、金饰、红飘带 */
@@ -847,7 +849,7 @@ export function createAttendant({ variant = 'longnv', scale = 1 } = {}) {
   attendantLotus(g, s);
   if (variant === 'shancai') shancaiBody(g, s);
   else longnvBody(g, s);
-  return g;
+  return batchStatue(g);
 }
 
 /* ======================= 天王殿：弥勒佛与四大天王 ======================= */
@@ -1076,11 +1078,7 @@ function maitreyaBody(g, s) {
   maitreyaHead(g, s);
 }
 
-export function createMaitreya({ scale = 1.6 } = {}) {
-  const g = new THREE.Group();
-  maitreyaBody(g, scale);
-  return g;
-}
+export function createMaitreya({ scale = 1.6 } = {}) { return createBudai(scale); }
 
 /* 天王岩座 */
 function kingRockBase(g, s) {
@@ -1107,10 +1105,10 @@ function kingHead(g, s, hy) {
   const HD = 0.64 * s;
   const FZ = HD / 2 + 0.03 * s;
 
-  box(g, 0.4 * s, 0.2 * s, 0.4 * s, 0, hy - HH / 2 - 0.16 * s, 0.02 * s, M.skinFairDeep, flat);
-  box(g, HW, HH, HD, 0, hy, 0.02 * s, M.skinFairDeep);
+  box(g, 0.4 * s, 0.2 * s, 0.4 * s, 0, hy - HH / 2 - 0.16 * s, 0.02 * s, M.voxGoldLight, flat);
+  box(g, HW, HH, HD, 0, hy, 0.02 * s, M.voxGoldLight);
   for (const sd of [-1, 1]) {
-    box(g, 0.1 * s, 0.34 * s, 0.14 * s, sd * (HW / 2 + 0.04 * s), hy - 0.04 * s, 0.02 * s, M.skinFairDeep, flat);
+    box(g, 0.1 * s, 0.34 * s, 0.14 * s, sd * (HW / 2 + 0.04 * s), hy - 0.04 * s, 0.02 * s, M.voxGoldLight, flat);
     box(g, 0.12 * s, 0.1 * s, 0.06 * s, sd * (HW / 2 + 0.04 * s), hy - 0.22 * s, 0.06 * s, M.gold, flat);
   }
   // 怒眉与圆眼
@@ -1134,7 +1132,7 @@ function kingHead(g, s, hy) {
   // 头盔：金箍、冠叶、护耳
   const crownY = hy + HH / 2 + 0.02 * s;
   box(g, HW + 0.12 * s, 0.14 * s, HD + 0.1 * s, 0, crownY, 0.02 * s, M.voxGoldDeep, flat);
-  box(g, HW + 0.02 * s, 0.3 * s, HD - 0.02 * s, 0, crownY + 0.2 * s, 0.02 * s, M.armor, flat);
+  box(g, HW + 0.02 * s, 0.3 * s, HD - 0.02 * s, 0, crownY + 0.2 * s, 0.02 * s, M.voxGold, flat);
   box(g, 0.24 * s, 0.2 * s, 0.08 * s, 0, crownY + 0.17 * s, FZ + 0.01 * s, M.gold, flat);
   for (const sd of [-1, 1]) {
     box(g, 0.1 * s, 0.34 * s, 0.08 * s, sd * 0.2 * s, crownY + 0.42 * s, FZ - 0.02 * s, M.gold, flat);
@@ -1146,28 +1144,28 @@ function kingHead(g, s, hy) {
 /* 天王身体：甲胄坐姿 */
 function kingBody(g, s) {
   // 双腿：右腿下垂、左膝抬起
-  box(g, 1.0 * s, 0.5 * s, 1.0 * s, 0.52 * s, 0.92 * s, 0.12 * s, M.armor);
+  box(g, 1.0 * s, 0.5 * s, 1.0 * s, 0.52 * s, 0.92 * s, 0.12 * s, M.voxGold);
   box(g, 0.46 * s, 0.14 * s, 0.5 * s, 0.52 * s, 1.2 * s, 0.3 * s, M.voxGoldDeep, flat);
   beamBetween(g, new THREE.Vector3(0.5 * s, 0.9 * s, 0.24 * s),
-    new THREE.Vector3(0.58 * s, 0.56 * s, 0.5 * s), 0.2 * s, M.armor, 4);
-  box(g, 0.32 * s, 0.2 * s, 0.42 * s, 0.58 * s, 0.42 * s, 0.62 * s, M.bronze, flat);
+    new THREE.Vector3(0.58 * s, 0.56 * s, 0.5 * s), 0.2 * s, M.voxGold, 4);
+  box(g, 0.32 * s, 0.2 * s, 0.42 * s, 0.58 * s, 0.42 * s, 0.62 * s, M.voxGoldDeep, flat);
   beamBetween(g, new THREE.Vector3(-0.16 * s, 1.02 * s, 0.08 * s),
-    new THREE.Vector3(-0.6 * s, 0.72 * s, 0.42 * s), 0.22 * s, M.armor, 4);
-  box(g, 0.36 * s, 0.28 * s, 0.44 * s, -0.64 * s, 0.52 * s, 0.55 * s, M.bronze, flat);
+    new THREE.Vector3(-0.6 * s, 0.72 * s, 0.42 * s), 0.22 * s, M.voxGold, 4);
+  box(g, 0.36 * s, 0.28 * s, 0.44 * s, -0.64 * s, 0.52 * s, 0.55 * s, M.voxGoldDeep, flat);
 
   // 裙甲与护腹
-  box(g, 1.0 * s, 0.62 * s, 0.92 * s, 0, 1.06 * s, 0.04 * s, M.armor);
+  box(g, 1.0 * s, 0.62 * s, 0.92 * s, 0, 1.06 * s, 0.04 * s, M.voxGold);
   for (let i = -2; i <= 2; i++) {
     box(g, 0.14 * s, 0.5 * s, 0.06 * s, i * 0.2 * s, 1.06 * s, 0.5 * s, M.voxGoldDeep, flat);
   }
   box(g, 1.12 * s, 0.16 * s, 0.98 * s, 0, 1.36 * s, 0.03 * s, M.voxGoldDeep, flat);
   // 胸甲
-  box(g, 1.06 * s, 0.94 * s, 0.72 * s, 0, 1.92 * s, 0.02 * s, M.armor);
-  box(g, 0.46 * s, 0.46 * s, 0.12 * s, 0, 1.98 * s, 0.4 * s, M.bronze, flat);
+  box(g, 1.06 * s, 0.94 * s, 0.72 * s, 0, 1.92 * s, 0.02 * s, M.voxGold);
+  box(g, 0.46 * s, 0.46 * s, 0.12 * s, 0, 1.98 * s, 0.4 * s, M.voxGoldDeep, flat);
   box(g, 0.26 * s, 0.26 * s, 0.08 * s, 0, 1.98 * s, 0.47 * s, M.voxGoldDeep, flat);
   // 肩甲
   for (const sd of [-1, 1]) {
-    box(g, 0.52 * s, 0.32 * s, 0.94 * s, sd * 0.78 * s, 2.34 * s, 0, M.armor);
+    box(g, 0.52 * s, 0.32 * s, 0.94 * s, sd * 0.78 * s, 2.34 * s, 0, M.voxGold);
     box(g, 0.56 * s, 0.1 * s, 0.98 * s, sd * 0.78 * s, 2.5 * s, 0, M.voxGoldDeep, flat);
     box(g, 0.16 * s, 0.16 * s, 0.16 * s, sd * 0.78 * s, 2.56 * s, 0.3 * s, M.gold, flat);
   }
@@ -1175,21 +1173,21 @@ function kingBody(g, s) {
   for (const sd of [-1, 1]) {
     box(g, 0.06 * s, 1.5 * s, 0.3 * s, sd * 0.66 * s, 1.6 * s, -0.5 * s, M.sashTealDark, flat);
   }
-  box(g, 0.5 * s, 0.3 * s, 0.5 * s, 0, 2.56 * s, 0.02 * s, M.skinFairDeep, flat);
+  box(g, 0.5 * s, 0.3 * s, 0.5 * s, 0, 2.56 * s, 0.02 * s, M.voxGoldLight, flat);
 
   // 右臂持法器
   beamBetween(g, new THREE.Vector3(-0.8 * s, 2.3 * s, 0.02 * s),
-    new THREE.Vector3(-1.02 * s, 1.8 * s, 0.24 * s), 0.15 * s, M.armor, 4);
+    new THREE.Vector3(-1.02 * s, 1.8 * s, 0.24 * s), 0.15 * s, M.voxGold, 4);
   beamBetween(g, new THREE.Vector3(-1.02 * s, 1.8 * s, 0.24 * s),
-    new THREE.Vector3(-0.92 * s, 1.42 * s, 0.44 * s), 0.12 * s, M.bronze, 4);
-  box(g, 0.24 * s, 0.16 * s, 0.26 * s, -0.92 * s, 1.34 * s, 0.5 * s, M.skinFairDeep, flat);
+    new THREE.Vector3(-0.92 * s, 1.42 * s, 0.44 * s), 0.12 * s, M.voxGoldDeep, 4);
+  box(g, 0.24 * s, 0.16 * s, 0.26 * s, -0.92 * s, 1.34 * s, 0.5 * s, M.voxGoldLight, flat);
   box(g, 0.2 * s, 0.08 * s, 0.22 * s, -0.98 * s, 1.52 * s, 0.4 * s, M.gold, flat);
   // 左臂扶膝
   beamBetween(g, new THREE.Vector3(0.8 * s, 2.3 * s, 0.02 * s),
-    new THREE.Vector3(1.0 * s, 1.82 * s, 0.22 * s), 0.15 * s, M.armor, 4);
+    new THREE.Vector3(1.0 * s, 1.82 * s, 0.22 * s), 0.15 * s, M.voxGold, 4);
   beamBetween(g, new THREE.Vector3(1.0 * s, 1.82 * s, 0.22 * s),
-    new THREE.Vector3(0.84 * s, 1.3 * s, 0.42 * s), 0.12 * s, M.bronze, 4);
-  box(g, 0.24 * s, 0.16 * s, 0.26 * s, 0.8 * s, 1.24 * s, 0.46 * s, M.skinFairDeep, flat);
+    new THREE.Vector3(0.84 * s, 1.3 * s, 0.42 * s), 0.12 * s, M.voxGoldDeep, 4);
+  box(g, 0.24 * s, 0.16 * s, 0.26 * s, 0.8 * s, 1.24 * s, 0.46 * s, M.voxGoldLight, flat);
 
   kingHead(g, s, 2.92 * s);
 }
@@ -1269,5 +1267,5 @@ export function createHeavenlyKing({ variant = 'pipa', scale = 1.2 } = {}) {
   kingRockBase(g, s);
   kingBody(g, s);
   (WEAPONS[variant] || weaponPipa)(g, s);
-  return g;
+  return batchStatue(g);
 }

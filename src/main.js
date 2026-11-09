@@ -3,7 +3,7 @@ import { Game } from './core/Game.js';
 function webglAvailable() {
   try {
     const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+    return !!(c.getContext('webgl2'));
   } catch {
     return false;
   }
@@ -20,7 +20,13 @@ if (!webglAvailable()) {
   hudEls.start.classList.add('hidden');
   hudEls.nogl.classList.remove('hidden');
 } else {
-  const game = new Game(app);
+  let game;
+  try { game = new Game(app); } catch (err) {
+    hudEls.start.classList.add("hidden");
+    hudEls.nogl.classList.remove("hidden");
+    console.error(err);
+    throw err;
+  }
 
   window.__JINGSHAN__ = {
     game,

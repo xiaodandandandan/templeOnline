@@ -3,10 +3,10 @@ import { OUTDOOR } from '../config/halls.js';
 const W = 170;
 const H = 300;
 const PAD = 6;
-const X0 = -25;
-const X1 = 25;
-const Z0 = -54;
-const Z1 = 63;
+const X0 = OUTDOOR.bounds.minX - 1;
+const X1 = OUTDOOR.bounds.maxX + 1;
+const Z0 = OUTDOOR.bounds.minZ - 1;
+const Z1 = OUTDOOR.bounds.maxZ + 3;
 
 const SHORT = {
   tianwang: '山门',
@@ -25,6 +25,17 @@ const SHORT = {
 /** 左上角缩略导览图：北向上，标出殿宇与当前位置朝向 */
 export class Minimap {
   constructor() {
+    this.toggle = document.getElementById('mapToggle');
+    this.panel = document.getElementById('mapPanel');
+    this.toggle?.addEventListener('click', () => {
+      const expanded = this.toggle.getAttribute('aria-expanded') !== 'true';
+      this.toggle.setAttribute('aria-expanded', String(expanded));
+      this.toggle.setAttribute('aria-label', expanded ? '收起地图' : '展开地图');
+      this.toggle.title = expanded ? '收起地图' : '展开地图';
+      this.toggle.textContent = expanded ? '×' : '图';
+      this.panel.hidden = !expanded;
+      this._last = -1;
+    });
     this.canvas = document.getElementById('minimapCanvas');
     this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
     if (this.ctx) this.ctx.setTransform(2, 0, 0, 2, 0, 0);
@@ -47,7 +58,7 @@ export class Minimap {
   y(v) { return this.oy + (v - Z0) * this.s; }
 
   update(map, player, t) {
-    if (!this.ctx) return;
+    if (!this.ctx || this.panel?.hidden) return;
     if (map.id === this._mapId && t - this._last < 0.1) return;
     this._last = t;
     this._mapId = map.id;

@@ -23,14 +23,17 @@ export class Input {
 
   attach(canvas) {
     this.canvas = canvas;
+    canvas.addEventListener('dblclick', () => { if(this.started) this.requestLock(); });
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch') {
+      if (!this.started) return;
+      if (!this.locked) {
         this.lookPointer = { id: e.pointerId, x: e.clientX, y: e.clientY };
-      } else if (this.started && !this.locked) {
-        this.requestLock();
+        canvas.setPointerCapture?.(e.pointerId);
       }
     });
     canvas.addEventListener('pointermove', (e) => {
+      if (this.locked) return;
       if (!this.lookPointer || e.pointerId !== this.lookPointer.id) return;
       this.lookX -= (e.clientX - this.lookPointer.x) * 0.0042;
       this.lookY -= (e.clientY - this.lookPointer.y) * 0.0038;
@@ -42,6 +45,7 @@ export class Input {
     };
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
+    canvas.addEventListener('lostpointercapture', end);
   }
 
   requestLock() {
