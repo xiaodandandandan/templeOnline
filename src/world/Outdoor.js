@@ -770,6 +770,147 @@ function buildIncenseStand(g, blockers, updaters) {
   blockers.push({ minX: x - 1.2, maxX: x + 1.2, minZ: z - 0.9, maxZ: z + 0.9 });
 }
 
+function buildFrontSideHall(g, blockers, side) {
+  const x = side * 19.0;
+  const z = 29.5;
+  const w = 8.0;
+  const d = 7.0;
+  const y = heightAt(z);
+  const plinth = 0.6;
+  const fp = y + plinth;
+  const group = new THREE.Group();
+  group.position.set(x, 0, z);
+  g.add(group);
+
+  box(group, w + 1.8, plinth * 0.55, d + 1.8, 0, y + plinth * 0.275, 0, M.stone);
+  box(group, w + 0.8, plinth * 0.45, d + 0.8, 0, y + plinth * 0.775, 0, M.stoneDark, { cast: false });
+
+  // 两层白墙楼身：下层门洞，上层窗棂。
+  box(group, w, 4.8, d, 0, fp + 2.4, 0, M.wallWhite, { cast: true });
+  box(group, w + 0.1, 0.45, d + 0.1, 0, fp + 4.55, 0, M.woodDark, { cast: false });
+  box(group, w * 0.72, 3.1, d * 0.72, 0, fp + 6.2, 0, M.wallWhite, { cast: true });
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      column(group, {
+        x: sx * (w / 2 - 0.45), y: fp, z: sz * (d / 2 - 0.45),
+        h: 4.4, radius: 0.2, mat: M.lacquer,
+      });
+    }
+  }
+  // 面向院子的门洞/窗
+  for (const [dz, hh] of [[-1.8, 2.8], [0, 3.2], [1.8, 2.8]]) {
+    box(group, 0.08, hh, 0.9, -side * (w / 2 + 0.02), fp + hh / 2, dz, M.black, { cast: false });
+    box(group, 0.1, hh + 0.24, 0.12, -side * (w / 2 + 0.08), fp + hh / 2, dz - 0.48, M.woodDark, { cast: false });
+    box(group, 0.1, hh + 0.24, 0.12, -side * (w / 2 + 0.08), fp + hh / 2, dz + 0.48, M.woodDark, { cast: false });
+  }
+  for (const dz of [-1.5, 0, 1.5]) {
+    box(group, 0.08, 0.75, 0.85, -side * (w * 0.36 + 0.02), fp + 6.2, dz, M.woodDark, { cast: false });
+  }
+
+  hippedRoof(group, { y: fp + 4.75, width: w + 2.0, depth: d + 2.0, rise: 1.35 });
+  roofDetails(group, { y: fp + 4.75, width: w + 2.0, depth: d + 2.0, rise: 1.35 });
+  hippedRoof(group, { y: fp + 7.8, width: w * 0.72 + 1.0, depth: d * 0.72 + 1.0, rise: 0.95 });
+  roofDetails(group, { y: fp + 7.8, width: w * 0.72 + 1.0, depth: d * 0.72 + 1.0, rise: 0.95 });
+
+  blockers.push({
+    minX: x - w / 2 - 0.6, maxX: x + w / 2 + 0.6,
+    minZ: z - d / 2 - 0.6, maxZ: z + d / 2 + 0.6,
+  });
+}
+
+function buildFrontGallery(g, blockers, side) {
+  const x = side * 12.8;
+  const z = 28.5;
+  const len = 13.5;
+  const w = 3.2;
+  const y = heightAt(z);
+  const group = new THREE.Group();
+  group.position.set(x, 0, z);
+  g.add(group);
+
+  box(group, w + 0.7, 0.25, len + 0.6, 0, y + 0.125, 0, M.stone);
+  box(group, w, 0.18, len, 0, y + 0.34, 0, M.floorStone, { cast: false });
+
+  // 一层白墙：靠院子一侧开门洞，墙顶和一层檐口平齐。
+  const inner = -side * (w / 2 - 0.2);
+  const wallH = 3.8;
+  const segments = [[-len / 2, -4.6], [-2.4, 2.4], [4.6, len / 2]];
+  for (const [a, b] of segments) {
+    box(group, 0.36, wallH, b - a, inner, y + 0.34 + wallH / 2, (a + b) / 2, M.wallWhite, { cast: true });
+  }
+  for (const cz of [-3.0, 0, 3.0]) {
+    box(group, 0.42, 0.3, 2.6, inner, y + 0.34 + wallH, cz, M.woodDark, { cast: false });
+  }
+
+  // 一层柱列 + 青栏。
+  for (let t = -len / 2 + 0.8; t <= len / 2 - 0.8; t += 2.0) {
+    column(group, {
+      x: side * (w / 2 - 0.22), y: y + 0.34, z: t,
+      h: 3.75, radius: 0.18, mat: M.lacquer,
+    });
+    column(group, {
+      x: inner, y: y + 0.34, z: t,
+      h: 3.75, radius: 0.18, mat: M.lacquer,
+    });
+  }
+
+  // 二层楼面 + 开敞飞檐连廊。
+  const upperY = y + 0.34 + wallH;
+  box(group, w + 0.8, 0.24, len + 0.5, 0, upperY + 0.12, 0, M.woodDark, { cast: false });
+  box(group, w + 0.7, 0.12, len + 0.4, 0, upperY + 0.3, 0, M.floorWood, { cast: false });
+  for (let t = -len / 2 + 0.8; t <= len / 2 - 0.8; t += 2.0) {
+    for (const sideX of [-1, 1]) {
+      column(group, {
+        x: sideX * (w / 2 - 0.24), y: upperY + 0.28, z: t,
+        h: 2.8, radius: 0.17, mat: M.lacquer,
+      });
+    }
+  }
+  for (const sideX of [-1, 1]) {
+    box(group, 0.11, 0.12, len - 0.5, sideX * (w / 2 - 0.22), upperY + 1.28, 0, M.railingTeal, { cast: false });
+    for (let t = -len / 2 + 1; t <= len / 2 - 1; t += 1.5) {
+      box(group, 0.1, 0.5, 0.1, sideX * (w / 2 - 0.22), upperY + 0.95, t, M.railingTeal, { cast: false });
+    }
+  }
+  hippedRoof(group, {
+    y: upperY + 2.85, width: w + 1.8, depth: len + 1.2, rise: 0.9,
+  });
+  roofDetails(group, {
+    y: upperY + 2.85, width: w + 1.8, depth: len + 1.2, rise: 0.9,
+  });
+
+  // 两端飞檐亭子。
+  for (const end of [-1, 1]) {
+    const ez = end * (len / 2 + 0.35);
+    box(group, w + 0.6, 0.22, 2.6, 0, upperY + 0.2, ez, M.woodDark, { cast: false });
+    for (const sx of [-1, 1]) {
+      column(group, {
+        x: sx * (w / 2 - 0.22), y: upperY + 0.3, z: ez,
+        h: 2.7, radius: 0.18, mat: M.lacquer,
+      });
+    }
+    box(group, w + 0.5, 0.12, 0.12, 0, upperY + 1.3, ez + end * 1.05, M.railingTeal, { cast: false });
+    hippedRoof(group, {
+      z: ez, y: upperY + 2.75, width: w + 2.1, depth: 3.1, rise: 0.95,
+    });
+    roofDetails(group, {
+      z: ez, y: upperY + 2.75, width: w + 2.1, depth: 3.1, rise: 0.95,
+    });
+  }
+
+  blockers.push({
+    minX: x - w / 2 - 0.5, maxX: x + w / 2 + 0.5,
+    minZ: z - len / 2 - 0.6, maxZ: z + len / 2 + 0.6,
+  });
+}
+
+function buildFrontCourtyard(g, blockers) {
+  buildFrontGallery(g, blockers, -1);
+  buildFrontGallery(g, blockers, 1);
+  buildFrontSideHall(g, blockers, -1);
+  buildFrontSideHall(g, blockers, 1);
+}
+
 function buildGarden(g, blockers) {
   const { x, z, w, d } = OUTDOOR.garden;
   const y = heightAt(z);
@@ -933,6 +1074,55 @@ function buildSiteDetails(g, blockers, surfaces) {
 
   buildFrontPlatform(g, surfaces);
   buildSideStair(g, surfaces);
+  buildGateRear(g, surfaces);
+}
+
+function buildGateRear(g, surfaces) {
+  const gate = OUTDOOR.entrances.find((e) => e.id === 'tianwang');
+  if (!gate) return;
+  const backZ = gate.z - gate.d / 2;
+  const ground = heightAt(backZ - 1.6);
+  const floor = gate.platform + 0.95;
+  const steps = 3;
+  for (let i = 0; i < steps; i++) {
+    const t = (i + 1) / steps;
+    const y = ground + (floor - ground) * t;
+    const z = backZ - 1.35 + 0.45 * i;
+    box(g, 7.2, y - ground + 0.12, 0.55, gate.x, ground + (y - ground) / 2, z, M.stoneStep, { cast: false });
+    surfaces.push({
+      minX: gate.x - 3.6, maxX: gate.x + 3.6,
+      minZ: z - 0.3, maxZ: z + 0.3,
+      y,
+    });
+  }
+
+  // 后门罩：白墙前的石阶、朱柱、灰色飞檐和匾额。
+  for (const dx of [-3.3, 3.3]) {
+    column(g, {
+      x: gate.x + dx, y: floor, z: backZ - 1.55,
+      h: 4.25, radius: 0.2, mat: M.lacquer,
+    });
+  }
+  box(g, 7.4, 0.18, 0.2, gate.x, floor + 4.05, backZ - 1.55, M.railingTeal, { cast: false });
+  hippedRoof(g, {
+    x: gate.x, y: floor + 4.15, z: backZ - 1.55,
+    width: 8.2, depth: 3.0, rise: 0.78,
+  });
+  roofDetails(g, {
+    x: gate.x, y: floor + 4.15, z: backZ - 1.55,
+    width: 8.2, depth: 3.0, rise: 0.78,
+  });
+  plaque(g, '度一切苦厄', {
+    x: gate.x, y: floor + 3.35, z: backZ - 0.18,
+    w: 2.7, h: 0.9, ry: Math.PI,
+  });
+  for (const sx of [-1, 1]) {
+    balustrade(g, {
+      x0: gate.x + sx * 4.0, x1: gate.x + sx * 4.0,
+      z0: backZ - 1.8, z1: backZ + 0.1,
+      y0: ground, y1: floor,
+    });
+  }
 }
 
 function buildPavilion(g, blockers) {
@@ -1084,6 +1274,7 @@ export function create(ctx) {
 
   buildWall(world, blockers);
   buildSiteDetails(world, blockers, surfaces);
+  buildFrontCourtyard(world, blockers);
   buildIncenseStand(world, blockers, updaters);
   buildGarden(world, blockers);
   buildPavilion(world, blockers);
