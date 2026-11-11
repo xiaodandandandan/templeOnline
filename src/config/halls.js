@@ -34,45 +34,45 @@ export const OUTDOOR = {
     },
     {
       id: 'shijia', name: '释迦宝殿', sub: '大雄宝殿',
-      x: 0, z: 12.0, w: 16, d: 11, h: 11.0, platform: 1.25, tiers: 1,
+      x: 0, z: 12.0, w: 16, d: 11, h: 11.0, platform: 1.25, tiers: 1, plinth: 0.95,
       doorZ: 17.5, input: { x: 0, z: 18.9 },
       preview: { scheme: 'gold', variant: 'buddha', pose: 'seated', scale: 0.95 },
     },
     {
       id: 'chaoyin', name: '潮音堂', sub: '文殊法席',
-      x: 0, z: -4.1, w: 14, d: 9, h: 9.9, platform: 1.95, tiers: 1,
+      x: 0, z: -4.1, w: 14, d: 9, h: 9.9, platform: 1.95, tiers: 1, plinth: 0.95,
       doorZ: 0.4, input: { x: 0, z: 2.3 },
       preview: { scheme: 'painted', variant: 'bodhisattva', pose: 'seated', scale: 0.92 },
     },
     {
       id: 'guanyin', name: '观音堂', sub: '水月慈容 · 龙女善财',
-      x: 0, z: -20.5, w: 12, d: 9, h: 9.6, platform: 2.65, tiers: 1,
+      x: 0, z: -20.5, w: 12, d: 9, h: 9.6, platform: 2.65, tiers: 1, plinth: 0.95,
       doorZ: -16.0, input: { x: 0, z: -14.2 },
       preview: { scheme: 'jade', variant: 'guanyin', pose: 'seated', arms: 6, scale: 0.8 },
     },
     {
       id: 'lingxiao', name: '凌霄阁', sub: '三世佛 · 四大菩萨',
-      x: 0, z: -40.0, w: 20, d: 13, h: 13.7, platform: 3.35, tiers: 3,
+      x: 0, z: -40.0, w: 20, d: 13, h: 13.7, platform: 3.35, tiers: 3, plinth: 0.95,
       doorZ: -33.5, input: { x: 0, z: -31.6 },
       preview: { scheme: 'bronze', variant: 'buddha', pose: 'seated', scale: 0.95 },
     },
     {
       id: 'yaoshi', name: '药师殿', sub: '东方净琉璃世界',
-      x: -10.667, z: -15.0, w: 7, d: 6, h: 8.1, platform: 2.65, tiers: 1, plinth: 0.35,
+      x: -14.667, z: -15.0, w: 16, d: 6, h: 8.1, platform: 2.65, tiers: 1, plinth: 0.65,
       ry: Math.PI / 2,
       doorZ: 14.6, input: { x: -17, z: 16.5 },
       preview: { scheme: 'jade', variant: 'buddha', pose: 'seated', scale: 0.8 },
     },
     {
       id: 'longwang', name: '龙王殿', sub: '灵泽龙王 · 护法',
-      x: 11.333, z: -15.0, w: 5.0, d: 4.4, h: 7.8, platform: 2.65, tiers: 1, plinth: 0.30,
+      x: 14.667, z: -15.0, w: 14, d: 5, h: 7.8, platform: 2.65, tiers: 1, plinth: 0.6,
       ry: -Math.PI / 2,
       doorZ: 17.6, input: { x: 14.0, z: 18.8 },
       preview: { scheme: 'painted', variant: 'dragon', pose: 'seated', scale: 0.78 },
     },
     {
       id: 'caishen', name: '财神殿', sub: '福德财神 · 顺风顺水',
-      x: 11.333, z: 1.786, w: 5.0, d: 4.4, h: 7.6, platform: 1.95, tiers: 1, plinth: 0.30,
+      x: 16.0, z: 1.786, w: 14, d: 5, h: 7.6, platform: 1.95, tiers: 1, plinth: 0.6,
       ry: -Math.PI / 2,
       doorZ: 17.6, input: { x: 21.0, z: 18.8 },
       preview: { scheme: 'gold', variant: 'caishen', pose: 'seated', scale: 0.78 },
@@ -82,17 +82,17 @@ export const OUTDOOR = {
   scenery: [
     {
       id: 'zutang', name: '祖堂', sub: '抄经 · 静心',
-      x: -10.667, z: 19.286, w: 7, d: 6, h: 7.8, platform: 1.25, tiers: 1, plinth: 0.35,
+      x: -14.667, z: 19.286, w: 16, d: 6, h: 7.8, platform: 1.25, tiers: 1, plinth: 0.65,
       ry: Math.PI / 2,
     },
     {
       id: 'wuguan', name: '五观堂', sub: '两层 · 素面',
-      x: -11.333, z: 1.786, w: 13, d: 10, h: 9.5, platform: 1.95, tiers: 2, plinth: 0.35,
+      x: -16.0, z: 1.786, w: 18, d: 10, h: 9.5, platform: 1.95, tiers: 2, plinth: 0.8,
       ry: Math.PI / 2,
     },
     {
       id: 'wenchuang', name: '文创用品', sub: '售卖 · 手作',
-      x: 10.667, z: 19.286, w: 8, d: 6, h: 7.2, platform: 1.25, tiers: 1, plinth: 0.35,
+      x: 14.667, z: 19.286, w: 16, d: 6, h: 7.2, platform: 1.25, tiers: 1, plinth: 0.65,
       ry: -Math.PI / 2,
     },
   ],
@@ -103,7 +103,7 @@ export const OUTDOOR = {
   },
   pavilion: {
     id: 'tingzi',
-    x: 16, z: -15.0,
+    x: 20, z: -15.0,
     w: 5, d: 5, h: 9.0, platform: 2.65,
   },
 };

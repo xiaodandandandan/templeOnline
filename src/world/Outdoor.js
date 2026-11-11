@@ -135,7 +135,7 @@ function buildHall(g, cfg, blockers, surfaces) {
   const { x, z, w, d, h, platform } = cfg;
   const ry = cfg.ry || 0;
   const baseY = platform;
-  // 台基高度：主殿 0.7m，侧殿/附属殿 0.35m，避免门前过高
+  // 三层石台基：外沿—主台—压边，让每座建筑都有明显“地基”。
   const plinth = cfg.plinth ?? 0.7;
   const fp = baseY + plinth;
   const g2 = new THREE.Group();
@@ -143,10 +143,11 @@ function buildHall(g, cfg, blockers, surfaces) {
   g2.rotation.y = ry;
   g.add(g2);
 
-  box(g2, w + 1.7, plinth * 0.64, d + 1.7, 0, baseY + plinth * 0.32, 0, M.stone);
-  box(g2, w + 0.8, plinth * 0.43, d + 0.8, 0, baseY + plinth * 0.785, 0, M.stoneDark, { cast: false });
+  box(g2, w + 2.4, plinth * 0.26, d + 2.4, 0, baseY + plinth * 0.13, 0, M.stone);
+  box(g2, w + 1.5, plinth * 0.52, d + 1.5, 0, baseY + plinth * 0.39, 0, M.stone, { cast: false });
+  box(g2, w + 0.8, plinth * 0.3, d + 0.8, 0, baseY + plinth * 0.85, 0, M.stoneDark, { cast: false });
   // 埋入式地基：坡地/台沿处不露缝
-  box(g2, w + 1.7, 1.4, d + 1.7, 0, baseY - 0.7, 0, M.stone, { cast: false });
+  box(g2, w + 2.4, 1.4, d + 2.4, 0, baseY - 0.7, 0, M.stone, { cast: false });
 
   const wallH = h * 0.72;
   const wallY = fp + wallH / 2;
@@ -179,7 +180,7 @@ function buildHall(g, cfg, blockers, surfaces) {
   });
 
   // 门前石阶：紧贴门槛铺设，高层用两级、低台基用一级，踏面 0.5m
-  const stepCount = plinth > 0.5 ? 2 : 1;
+  const stepCount = plinth > 0.8 ? 3 : plinth > 0.5 ? 2 : 1;
   const stepH = plinth / stepCount;
   const stepHalf = (doorW + 1.4) / 2;
   for (let i = 0; i < stepCount; i++) {
@@ -216,18 +217,20 @@ function buildHall(g, cfg, blockers, surfaces) {
   if (cfg.tiers > 1) {
     // 楼层必须落在下层屋顶之上，否则会被大屋顶吞掉。
     const tier2Base = eaveY + h * 0.52 + 0.12;
-    box(g2, w * 0.66, h * 0.24, d * 0.55, 0, tier2Base + h * 0.12, 0, M.lacquer, { cast: false });
+    box(g2, w * 0.7, 0.16, d * 0.6, 0, tier2Base + 0.08, 0, M.stoneDark, { cast: false });
+    box(g2, w * 0.66, h * 0.24, d * 0.55, 0, tier2Base + 0.16 + h * 0.12, 0, M.lacquer, { cast: false });
     hippedRoof(g2, {
-      y: tier2Base + h * 0.24,
+      y: tier2Base + 0.16 + h * 0.24,
       width: w * 0.82 + 1.4,
       depth: d * 0.7 + 1.4,
       rise: h * 0.38,
     });
     if (cfg.tiers > 2) {
-      const tier3Base = tier2Base + h * 0.24 + h * 0.38 + 0.1;
-      box(g2, w * 0.42, h * 0.18, d * 0.36, 0, tier3Base + h * 0.09, 0, M.lacquer, { cast: false });
+      const tier3Base = tier2Base + 0.16 + h * 0.24 + h * 0.38 + 0.1;
+      box(g2, w * 0.46, 0.14, d * 0.4, 0, tier3Base + 0.07, 0, M.stoneDark, { cast: false });
+      box(g2, w * 0.42, h * 0.18, d * 0.36, 0, tier3Base + 0.14 + h * 0.09, 0, M.lacquer, { cast: false });
       hippedRoof(g2, {
-        y: tier3Base + h * 0.18,
+        y: tier3Base + 0.14 + h * 0.18,
         width: w * 0.56 + 0.8,
         depth: d * 0.5 + 0.8,
         rise: h * 0.28,
@@ -265,8 +268,8 @@ function buildHall(g, cfg, blockers, surfaces) {
 
   // 台基比墙体宽 0.85m；不补碰撞时玩家会直接走进石台里。
   // 只封侧、后和门前两侧，中央门洞/石阶保持可通行。
-  const foundHalfW = (w + 1.7) / 2;
-  const foundHalfD = (d + 1.7) / 2;
+  const foundHalfW = (w + 2.4) / 2;
+  const foundHalfD = (d + 2.4) / 2;
   for (const side of [-1, 1]) {
     const inner = side < 0 ? -w / 2 + .05 : w / 2 - .05;
     const outer = side * foundHalfW;
@@ -419,7 +422,7 @@ function cypressTree(parent, { x, y = 0, z, scale = 1 }) {
 function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   const { x, z, w, d, platform } = cfg;
   const baseY = platform;
-  const plinth = 0.7;
+  const plinth = 0.95;
   const fp = baseY + plinth;
   const frontZ = d / 2;
   const lowerWallH = cfg.h * 0.72;
@@ -598,7 +601,7 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   buildChiwen(g2, { y: upperTop + 0.6 + 1.18, width: upperW + 1.5 });
 
   // 门前石阶
-  const stepCount = 2;
+  const stepCount = 3;
   const stepH = plinth / stepCount;
   const stepHalf = 3.2;
   for (let i = 0; i < stepCount; i++) {
@@ -811,23 +814,32 @@ function buildSideStair(g, surfaces) {
 }
 
 function buildSiteDetails(g, blockers, surfaces) {
-  // 天王殿两侧的带亭顶连廊
-  buildCorridor(g, { x: -10, z: 12.5, length: 6.5, axis: 'z', y: 0.55, width: 2.8 });
-  buildCorridor(g, { x: 10, z: 12.5, length: 6.5, axis: 'z', y: 0.55, width: 2.8 });
+  // 四合院式横向连廊：每条廊沿东西向，分成中轴两侧两段，
+  // 中间留出通道，两端接左右厢房。
+  const corridorPair = (z, y, leftStart, leftEnd, rightStart, rightEnd, width = 2.2) => {
+    buildCorridor(g, {
+      x: (leftStart + leftEnd) / 2, z, length: leftEnd - leftStart,
+      axis: 'x', y, width,
+    });
+    buildCorridor(g, {
+      x: (rightStart + rightEnd) / 2, z, length: rightEnd - rightStart,
+      axis: 'x', y, width,
+    });
+  };
 
-  // 释迦宝殿前的小平台与左右连廊
+  // 天王殿—释迦宝殿院子：南、北两条横廊
+  corridorPair(11.0, 0.55, -19, -7.5, 7.5, 19);
+  corridorPair(-2.0, 1.25, -19, -8.5, 8.5, 19);
+
+  // 释迦宝殿—潮音堂院子
+  corridorPair(-13.0, 1.95, -19, -8.5, 8.5, 21.5);
+  corridorPair(-25.0, 1.95, -19, -7.5, 7.5, 21.5);
+
+  // 潮音堂—观音堂院子
+  corridorPair(-35.0, 2.65, -19, -7.5, 7.5, 19.5);
+  corridorPair(-48.0, 2.65, -19, -6.5, 6.5, 19.5);
+
   buildFrontPlatform(g, surfaces);
-  buildCorridor(g, { x: -10.2, z: -4.2, length: 8.0, axis: 'z', y: 1.25, width: 2.8 });
-  buildCorridor(g, { x: 10.2, z: -4.2, length: 8.0, axis: 'z', y: 1.25, width: 2.8 });
-
-  // 释迦—潮音院子的左右连廊
-  buildCorridor(g, { x: -10.2, z: -21.5, length: 7.0, axis: 'z', y: 1.95, width: 2.6 });
-  buildCorridor(g, { x: 10.2, z: -21.5, length: 7.0, axis: 'z', y: 1.95, width: 2.6 });
-
-  // 潮音—观音院子的左右连廊
-  buildCorridor(g, { x: -9.6, z: -41.0, length: 6.5, axis: 'z', y: 2.65, width: 2.6 });
-  buildCorridor(g, { x: 9.6, z: -41.0, length: 6.5, axis: 'z', y: 2.65, width: 2.6 });
-
   buildSideStair(g, surfaces);
 }
 
