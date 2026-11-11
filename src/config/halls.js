@@ -46,56 +46,65 @@ export const OUTDOOR = {
     },
     {
       id: 'guanyin', name: '观音堂', sub: '水月慈容 · 龙女善财',
-      x: -15.5, z: -20.5, w: 12, d: 9, h: 9.6, platform: 2.65, tiers: 1,
-      ry: Math.PI / 2,
-      doorZ: -16.0, input: { x: -15.5, z: -14.2 },
+      x: 0, z: -20.5, w: 12, d: 9, h: 9.6, platform: 2.65, tiers: 1,
+      doorZ: -16.0, input: { x: 0, z: -14.2 },
       preview: { scheme: 'jade', variant: 'guanyin', pose: 'seated', arms: 6, scale: 0.8 },
     },
     {
       id: 'lingxiao', name: '凌霄阁', sub: '三世佛 · 四大菩萨',
-      x: 0, z: -40.0, w: 20, d: 13, h: 13.7, platform: 3.35, tiers: 2,
+      x: 0, z: -40.0, w: 20, d: 13, h: 13.7, platform: 3.35, tiers: 3,
       doorZ: -33.5, input: { x: 0, z: -31.6 },
       preview: { scheme: 'bronze', variant: 'buddha', pose: 'seated', scale: 0.95 },
     },
     {
       id: 'yaoshi', name: '药师殿', sub: '东方净琉璃世界',
-      x: -17, z: 11.6, w: 7, d: 6, h: 8.1, platform: 1.25, tiers: 1, plinth: 0.35,
+      x: -10.667, z: -15.0, w: 7, d: 6, h: 8.1, platform: 2.65, tiers: 1, plinth: 0.35,
       ry: Math.PI / 2,
       doorZ: 14.6, input: { x: -17, z: 16.5 },
       preview: { scheme: 'jade', variant: 'buddha', pose: 'seated', scale: 0.8 },
     },
     {
       id: 'longwang', name: '龙王殿', sub: '灵泽龙王 · 护法',
-      x: 14.0, z: 15.4, w: 5.0, d: 4.4, h: 7.8, platform: 1.25, tiers: 1, plinth: 0.30,
+      x: 11.333, z: -15.0, w: 5.0, d: 4.4, h: 7.8, platform: 2.65, tiers: 1, plinth: 0.30,
       ry: -Math.PI / 2,
       doorZ: 17.6, input: { x: 14.0, z: 18.8 },
       preview: { scheme: 'painted', variant: 'dragon', pose: 'seated', scale: 0.78 },
     },
     {
       id: 'caishen', name: '财神殿', sub: '福德财神 · 顺风顺水',
-      x: 21.0, z: 15.4, w: 5.0, d: 4.4, h: 7.6, platform: 1.25, tiers: 1, plinth: 0.30,
+      x: 11.333, z: 1.786, w: 5.0, d: 4.4, h: 7.6, platform: 1.95, tiers: 1, plinth: 0.30,
       ry: -Math.PI / 2,
       doorZ: 17.6, input: { x: 21.0, z: 18.8 },
       preview: { scheme: 'gold', variant: 'caishen', pose: 'seated', scale: 0.78 },
     },
   ],
-  // 纯景观建筑（不设拜位）：祖堂（抄经）、五观堂（素面）
+  // 纯景观建筑（不设拜位）：祖堂（抄经）、五观堂（两层素面）、文创店。
   scenery: [
     {
       id: 'zutang', name: '祖堂', sub: '抄经 · 静心',
-      x: -12.8, z: 27.0, w: 7, d: 6, h: 7.8, platform: 0.55, tiers: 1, plinth: 0.35,
+      x: -10.667, z: 19.286, w: 7, d: 6, h: 7.8, platform: 1.25, tiers: 1, plinth: 0.35,
       ry: Math.PI / 2,
     },
     {
-      id: 'wuguan', name: '五观堂', sub: '素面',
-      x: -24.5, z: 26.0, w: 13, d: 10, h: 8.3, platform: 0.55, tiers: 1, plinth: 0.35,
+      id: 'wuguan', name: '五观堂', sub: '两层 · 素面',
+      x: -11.333, z: 1.786, w: 13, d: 10, h: 9.5, platform: 1.95, tiers: 2, plinth: 0.35,
       ry: Math.PI / 2,
+    },
+    {
+      id: 'wenchuang', name: '文创用品', sub: '售卖 · 手作',
+      x: 10.667, z: 19.286, w: 8, d: 6, h: 7.2, platform: 1.25, tiers: 1, plinth: 0.35,
+      ry: -Math.PI / 2,
     },
   ],
   garden: {
     id: 'lutan',
-    x: 17, z: -47,
-    input: { x: 17, z: -42.8 },
+    x: 0, z: -25.0,
+    w: 10, d: 4,
+  },
+  pavilion: {
+    id: 'tingzi',
+    x: 16, z: -15.0,
+    w: 5, d: 5, h: 9.0, platform: 2.65,
   },
 };
 
@@ -109,6 +118,7 @@ export const HALLS = {
   longwang: { name: '龙王殿', subtitle: '灵泽龙王 · 护法', total: 3 },
   caishen: { name: '财神殿', subtitle: '福德财神', total: 1 },
   zutang: { name: '祖堂', subtitle: '抄经 · 静心', total: 0 },
+  wenchuang: { name: '文创用品', subtitle: '售卖 · 手作', total: 0 },
   outdoor: { name: '径山寺', subtitle: '五进中轴 · 庭院', total: 1 },
 };
 
@@ -122,11 +132,7 @@ for (const b of [...OUTDOOR.entrances,...OUTDOOR.scenery]) {
 }
 OUTDOOR.bounds={minX:-46,maxX:46,minZ:spreadZ(-56),maxZ:60};
 OUTDOOR.garden.x*=1.5;
-const gardenZ=OUTDOOR.garden.z;
-OUTDOOR.garden.z=spreadZ(gardenZ);
-OUTDOOR.garden.input.x=OUTDOOR.garden.x;
-OUTDOOR.garden.input.z=OUTDOOR.garden.z+(OUTDOOR.garden.input.z-gardenZ);
-
-const diningHall=OUTDOOR.scenery.find(b=>b.id==='wuguan');
-diningHall.input={x:diningHall.x,z:diningHall.z+diningHall.d/2+2};
-HALLS.wuguan={name:'五观堂',subtitle:'素面用餐区',total:0};
+OUTDOOR.garden.z=spreadZ(OUTDOOR.garden.z);
+OUTDOOR.pavilion.x*=1.5;
+OUTDOOR.pavilion.z=spreadZ(OUTDOOR.pavilion.z);
+HALLS.wuguan={name:'五观堂',subtitle:'两层 · 素面',total:0};

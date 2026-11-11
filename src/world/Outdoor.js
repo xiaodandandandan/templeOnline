@@ -214,8 +214,25 @@ function buildHall(g, cfg, blockers, surfaces) {
   box(g2, 0.56, friezeH, d + 0.1, w / 2 + 0.03, friezeY, 0, M.woodDark, { cast: false });
   hippedRoof(g2, { y: eaveY, width: w + 2.0, depth: d + 2.0, rise: h * 0.52 });
   if (cfg.tiers > 1) {
-    box(g2, w * 0.66, h * 0.24, d * 0.55, 0, eaveY + h * 0.24 / 2 + 0.2, 0, M.lacquer, { cast: false });
-    hippedRoof(g2, { y: eaveY + h * 0.24 + 0.2, width: w * 0.82 + 1.4, depth: d * 0.7 + 1.4, rise: h * 0.38 });
+    // 楼层必须落在下层屋顶之上，否则会被大屋顶吞掉。
+    const tier2Base = eaveY + h * 0.52 + 0.12;
+    box(g2, w * 0.66, h * 0.24, d * 0.55, 0, tier2Base + h * 0.12, 0, M.lacquer, { cast: false });
+    hippedRoof(g2, {
+      y: tier2Base + h * 0.24,
+      width: w * 0.82 + 1.4,
+      depth: d * 0.7 + 1.4,
+      rise: h * 0.38,
+    });
+    if (cfg.tiers > 2) {
+      const tier3Base = tier2Base + h * 0.24 + h * 0.38 + 0.1;
+      box(g2, w * 0.42, h * 0.18, d * 0.36, 0, tier3Base + h * 0.09, 0, M.lacquer, { cast: false });
+      hippedRoof(g2, {
+        y: tier3Base + h * 0.18,
+        width: w * 0.56 + 0.8,
+        depth: d * 0.5 + 0.8,
+        rise: h * 0.28,
+      });
+    }
   }
 
   // dougong bracket sets
@@ -436,7 +453,7 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   }
   for (const o of GATE_OPENINGS) {
     // 正面中门敞开，可直接步入殿内；其余门扇与背面保持闭合
-    buildArch(g2, { x: o.x, y: fp, z: frontZ, width: o.w, height: o.h, wallTop, wallT: 0.5, dir: 1, open: o.x === 0 });
+    buildArch(g2, { x: o.x, y: fp, z: frontZ, width: o.w, height: o.h, wallTop, wallT: 0.5, dir: 1, open: true });
     buildArch(g2, { x: o.x, y: fp, z: -frontZ, width: o.w, height: o.h, wallTop, wallT: 0.5, dir: -1, open: false });
   }
 
@@ -536,6 +553,17 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   buildDougong(g2, { y: wallTop, z: -frontZ - 0.42, width: w + 0.4, dir: -1 });
   buildEave(g2, { y: wallTop + 0.6, width: w + 2.2, depth: d + 2.2, rise: 1.05 });
 
+  // 两侧门洞上方的小亭连廊
+  for (const side of [-1, 1]) {
+    for (const cx of [3.2, 7.2]) {
+      column(g2, { x: side * cx, y: fp, z: frontZ + 0.38, h: 4.0, radius: 0.22, mat: M.lacquer });
+    }
+    hippedRoof(g2, {
+      x: side * 5.2, y: fp + 4.15, z: frontZ + 0.28,
+      width: 4.8, depth: 2.9, rise: 0.9,
+    });
+  }
+
   // 二层楼身
   const upperBase = wallTop + 1.1;
   const upperW = 8.4;
@@ -584,6 +612,21 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
       y: baseY + sh,
     });
   }
+  // 两侧门洞也补门前踏面。
+  for (const sx of [-3.7, 3.7]) {
+    const sideHalf = 1.2;
+    for (let i = 0; i < stepCount; i++) {
+      const sh = stepH * (i + 1);
+      box(g2, sideHalf * 2, sh + 0.3, 0.5, sx, baseY + (sh - 0.3) / 2,
+        frontZ + 0.25 + 0.5 * (stepCount - i - 0.5), M.stoneStep, { cast: false });
+      surfaces.push({
+        minX: x + sx - sideHalf, maxX: x + sx + sideHalf,
+        minZ: z + frontZ + 0.25 + 0.5 * (stepCount - i - 1),
+        maxZ: z + frontZ + 0.25 + 0.5 * (stepCount - i),
+        y: baseY + sh,
+      });
+    }
+  }
   for (const side of [-1, 1]) {
     balustrade(g2, {
       x0: side * (stepHalf + 0.16), x1: side * (stepHalf + 0.16),
@@ -619,13 +662,15 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
     minX: x - w / 2 - 0.9, maxX: x + w / 2 + 0.9,
     minZ: z - d / 2 - 0.85, maxZ: z - d / 2 + 0.25,
   });
-  // 正面前墙：中间门洞（宽 3.1）放行
-  for (const s of [-1, 1]) {
-    blockers.push({
-      minX: s < 0 ? x - w / 2 - 0.9 : x + 1.55,
-      maxX: s < 0 ? x - 1.55 : x + w / 2 + 0.9,
-      minZ: z + d / 2 - 0.25, maxZ: z + d / 2 + 0.85,
-    });
+  // 正面前墙：中央门洞 + 两侧小门洞都放行。
+  const frontSegments = [
+    [x - w / 2 - 0.9, x - 4.7],
+    [x - 2.7, x - 1.55],
+    [x + 1.55, x + 2.7],
+    [x + 4.7, x + w / 2 + 0.9],
+  ];
+  for (const [minX, maxX] of frontSegments) {
+    blockers.push({ minX, maxX, minZ: z + d / 2 - 0.25, maxZ: z + d / 2 + 0.85 });
   }
   // 殿内可走地面（抬升至台基高度）
   addLocalSurface(surfaces, cfg, {
@@ -637,7 +682,7 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
 
 // 山门外南侧：请香处（导览图 10 号点）
 function buildIncenseStand(g, blockers, updaters) {
-  const x = 6.4;
+  const x = -6.4;
   const z = 44.5;
   const y = heightAt(z);
   box(g, 3.6, 0.16, 1.8, x, y + 0.08, z, M.stoneDark, { cast: false });
@@ -653,34 +698,170 @@ function buildIncenseStand(g, blockers, updaters) {
   blockers.push({ minX: x - 1.2, maxX: x + 1.2, minZ: z - 0.9, maxZ: z + 0.9 });
 }
 
-function buildGarden(g, blockers, interactives, updaters, surfaces) {
-  const { id, x, z, input } = OUTDOOR.garden;
+function buildGarden(g, blockers) {
+  const { x, z, w, d } = OUTDOOR.garden;
   const y = heightAt(z);
-  box(g, 5, 0.5, 5, x, y + 0.25, z, M.stone);
-  box(g, 4.2, 0.2, 4.2, x, y + 0.6, z, M.stoneDark, { cast: false });
-  surfaces.push({ minX: x - 2.5, maxX: x + 2.5, minZ: z - 2.5, maxZ: z + 2.5, y: y + 0.7 });
+  const halfW = w / 2;
+  const halfD = d / 2;
 
-  const statue = createStatue({ scale: 1.55, scheme: 'jade', variant: 'guanyin', pose: 'standing', arms: 10 });
-  statue.position.set(x, y + 0.7, z);
-  g.add(statue);
+  // 大鲤鱼池：石质池沿、下沉水面、锦鲤和左右树木。
+  box(g, w + 1.2, 0.32, d + 1.2, x, y + 0.16, z, M.stone);
+  box(g, w + 0.5, 0.18, d + 0.5, x, y + 0.38, z, M.stoneDark, { cast: false });
+  plane(g, w - 0.15, d - 0.15, x, y + 0.47, z, M.waveBlue, [-Math.PI / 2, 0, 0]);
+  plane(g, w - 0.8, d - 0.8, x, y + 0.475, z, M.waveBlueLight, [-Math.PI / 2, 0, 0]);
 
-  const altar = createAltar({ x, z: z + 3.0, width: 3.2, scale: 0.9, y });
-  g.add(altar.group);
-  g.add(createCushion({ x: input.x, z: input.z, y: y + 0.02, scale: 1.05 }));
-  updaters.push((dt, t) => altar.update(dt, t));
-  const smokeP = new Smoke(g, { ...altar.smokeOrigin, count: 4, height: 4.2 });
-  updaters.push((dt, t) => smokeP.update(dt, t));
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    const fx = x + Math.cos(a) * (halfW * 0.62);
+    const fz = z + Math.sin(a) * (halfD * 0.55);
+    box(g, 0.32, 0.08, 0.18, fx, y + 0.54, fz, i % 2 ? M.lantern : M.goldDim, { cast: false });
+  }
 
-  interactives.push({
-    id, type: 'cushion', name: '露天自在观音', hall: '莲池',
-    label: '跪拜 · 露天自在观音',
-    x: input.x, z: input.z,
-    statueX: x, statueZ: z,
-    radius: 3.2,
+  // 左右树列，和池子一起围出观音—凌霄之间的小院。
+  for (const side of [-1, 1]) {
+    const tx = x + side * (halfW + 1.7);
+    pineTree(g, { x: tx, y, z: z - 1.8, scale: 1.05, seed: 20 + side });
+    pineTree(g, { x: tx, y, z: z + 1.8, scale: 1.0, seed: 24 + side });
+    blockers.push({
+      minX: tx - 0.65, maxX: tx + 0.65,
+      minZ: z - 2.9, maxZ: z + 2.9,
+    });
+  }
+
+  // 池子本身不可行走，玩家从两侧绕行后上台阶到凌霄阁。
+  blockers.push({
+    minX: x - halfW - 0.7, maxX: x + halfW + 0.7,
+    minZ: z - halfD - 0.7, maxZ: z + halfD + 0.7,
   });
+}
 
-  blockers.push({ minX: x - 2.6, maxX: x + 2.6, minZ: z - 2.6, maxZ: z + 1.2 });
-  blockers.push({ minX: x - 1.9, maxX: x + 1.9, minZ: z + 2.35, maxZ: z + 3.65 });
+function buildCorridor(g, { x, z, length, axis = 'z', y = 0, width = 2.6, height = 3.2 }) {
+  const group = new THREE.Group();
+  group.position.set(x, 0, z);
+  group.rotation.y = axis === 'x' ? Math.PI / 2 : 0;
+  g.add(group);
+
+  const half = length / 2;
+  for (let t = -half; t <= half + 0.01; t += 2.0) {
+    for (const side of [-1, 1]) {
+      column(group, {
+        x: side * (width / 2 - 0.28), y, z: t,
+        h: height, radius: 0.18, mat: M.lacquer,
+      });
+    }
+    box(group, width, 0.16, 0.22, 0, y + height - 0.08, t, M.woodDark, { cast: false });
+  }
+
+  // 连廊主体是窄长屋顶，两端加小亭子屋顶。
+  hippedRoof(group, {
+    y: y + height + 0.08, width, depth: length + 0.5, rise: 0.72,
+  });
+  for (const end of [-1, 1]) {
+    hippedRoof(group, {
+      x: 0, y: y + height + 0.35, z: end * (half + 0.1),
+      width: width + 1.0, depth: 3.2, rise: 0.95,
+    });
+  }
+  for (const side of [-1, 1]) {
+    box(group, 0.1, 0.72, length, side * (width / 2 - 0.2), y + 0.48, 0, M.woodDark, { cast: false });
+  }
+}
+
+function buildFrontPlatform(g, surfaces) {
+  const cfg = OUTDOOR.entrances.find((e) => e.id === 'shijia');
+  if (!cfg) return;
+  const x = cfg.x;
+  const z = cfg.z + cfg.d / 2 + 2.1;
+  const y = cfg.platform;
+  box(g, 11.5, 0.24, 2.2, x, y + 0.12, z, M.stoneStep);
+  box(g, 12.0, 0.08, 2.5, x, y + 0.26, z, M.stoneDark, { cast: false });
+  surfaces.push({
+    minX: x - 5.75, maxX: x + 5.75,
+    minZ: z - 1.1, maxZ: z + 1.1,
+    y: y + 0.28,
+  });
+}
+
+function buildSideStair(g, surfaces) {
+  // 释迦宝殿右侧上到潮音堂前院子的侧向石阶。
+  const x0 = 8.4;
+  const x1 = 13.2;
+  const z0 = -13.6;
+  const z1 = -20.0;
+  const y0 = 1.25;
+  const y1 = 1.95;
+  const steps = 7;
+  for (let i = 0; i < steps; i++) {
+    const a = i / steps;
+    const b = (i + 1) / steps;
+    const za = z0 + (z1 - z0) * a;
+    const zb = z0 + (z1 - z0) * b;
+    const yy = y0 + (y1 - y0) * b;
+    box(g, x1 - x0, yy - y0 + 0.12, Math.abs(zb - za) + 0.03,
+      (x0 + x1) / 2, y0 + (yy - y0) / 2, (za + zb) / 2, M.stoneStep, { cast: false });
+    surfaces.push({
+      minX: x0, maxX: x1,
+      minZ: Math.min(za, zb), maxZ: Math.max(za, zb),
+      y: yy,
+    });
+  }
+  for (const x of [x0 - 0.22, x1 + 0.22]) {
+    balustrade(g, { x0: x, x1: x, z0, z1, y0, y1 });
+  }
+}
+
+function buildSiteDetails(g, blockers, surfaces) {
+  // 天王殿两侧的带亭顶连廊
+  buildCorridor(g, { x: -10, z: 12.5, length: 6.5, axis: 'z', y: 0.55, width: 2.8 });
+  buildCorridor(g, { x: 10, z: 12.5, length: 6.5, axis: 'z', y: 0.55, width: 2.8 });
+
+  // 释迦宝殿前的小平台与左右连廊
+  buildFrontPlatform(g, surfaces);
+  buildCorridor(g, { x: -10.2, z: -4.2, length: 8.0, axis: 'z', y: 1.25, width: 2.8 });
+  buildCorridor(g, { x: 10.2, z: -4.2, length: 8.0, axis: 'z', y: 1.25, width: 2.8 });
+
+  // 释迦—潮音院子的左右连廊
+  buildCorridor(g, { x: -10.2, z: -21.5, length: 7.0, axis: 'z', y: 1.95, width: 2.6 });
+  buildCorridor(g, { x: 10.2, z: -21.5, length: 7.0, axis: 'z', y: 1.95, width: 2.6 });
+
+  // 潮音—观音院子的左右连廊
+  buildCorridor(g, { x: -9.6, z: -41.0, length: 6.5, axis: 'z', y: 2.65, width: 2.6 });
+  buildCorridor(g, { x: 9.6, z: -41.0, length: 6.5, axis: 'z', y: 2.65, width: 2.6 });
+
+  buildSideStair(g, surfaces);
+}
+
+function buildPavilion(g, blockers) {
+  const { x, z, w, d, h, platform } = OUTDOOR.pavilion;
+  const y = platform;
+  box(g, w + 1.2, 0.32, d + 1.2, x, y + 0.16, z, M.stone);
+  box(g, w, 0.22, d, x, y + 0.4, z, M.woodDark, { cast: false });
+
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      const cx = x + sx * (w / 2 - 0.35);
+      const cz = z + sz * (d / 2 - 0.35);
+      column(g, { x: cx, y: y + 0.4, z: cz, h: h * 0.48, radius: 0.26, mat: M.gateRed });
+      blockers.push({ minX: cx - 0.35, maxX: cx + 0.35, minZ: cz - 0.35, maxZ: cz + 0.35 });
+    }
+  }
+
+  // 两层亭子：下层檐 + 上层小楼身和檐。
+  hippedRoof(g, { y: y + h * 0.52, width: w + 1.8, depth: d + 1.8, rise: 1.15 });
+  box(g, w * 0.62, h * 0.2, d * 0.62, x, y + h * 0.62, z, M.lacquer, { cast: false });
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      column(g, {
+        x: x + sx * (w * 0.28), y: y + h * 0.7, z: z + sz * (d * 0.28),
+        h: h * 0.2, radius: 0.18, mat: M.gateRed,
+      });
+    }
+  }
+  hippedRoof(g, { y: y + h * 0.82, width: w * 0.95, depth: d * 0.95, rise: 1.0 });
+
+  for (const sx of [-1, 1]) {
+    box(g, 0.12, 0.62, d * 0.72, x + sx * (w / 2 - 0.3), y + h * 0.3, z, M.woodDark, { cast: false });
+  }
 }
 
 function buildScenery(g, blockers) {
@@ -792,8 +973,10 @@ export function create(ctx) {
   }
 
   buildWall(world, blockers);
+  buildSiteDetails(world, blockers, surfaces);
   buildIncenseStand(world, blockers, updaters);
-  buildGarden(world, blockers, interactives, updaters, surfaces);
+  buildGarden(world, blockers);
+  buildPavilion(world, blockers);
   buildScenery(world, blockers);
   mergeStatic(world);
 
@@ -828,8 +1011,8 @@ export function create(ctx) {
         }
       }
       const g = OUTDOOR.garden;
-      if (Math.abs(x - g.x) < 4 && Math.abs(z - g.z) < 4) {
-        return { id: g.id, name: '莲池', subtitle: '露天自在观音' };
+      if (Math.abs(x - g.x) < g.w / 2 + 1 && Math.abs(z - g.z) < g.d / 2 + 1) {
+        return { id: g.id, name: '鲤池', subtitle: '锦鲤 · 树影' };
       }
       return { id: 'outdoor', name: OUTDOOR.name, subtitle: OUTDOOR.subtitle };
     },

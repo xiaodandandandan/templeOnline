@@ -21,7 +21,9 @@ const SHORT = {
   caishen: '财神',
   zutang: '祖堂',
   wuguan: '五观',
-  lutan: '莲池',
+  wenchuang: '文创',
+  tingzi: '亭',
+  lutan: '鲤池',
 };
 
 /** 左上角缩略导览图：北向上，标出殿宇与当前位置朝向 */
@@ -45,7 +47,8 @@ export class Minimap {
     this.halls = [
       ...OUTDOOR.entrances.map((e) => ({ id: e.id, name: e.name, x: e.x, z: e.z, w: e.w, d: e.d, ry: e.ry || 0, pond: false })),
       ...(OUTDOOR.scenery || []).map((e) => ({ id: e.id, name: e.name, x: e.x, z: e.z, w: e.w, d: e.d, ry: e.ry || 0, pond: false })),
-      { id: OUTDOOR.garden.id, name: '莲池', ...OUTDOOR.garden, w: 5, d: 5, ry: 0, pond: true },
+      { id: OUTDOOR.garden.id, name: '鲤池', ...OUTDOOR.garden, ry: 0, pond: true },
+      { id: OUTDOOR.pavilion.id, name: '亭', ...OUTDOOR.pavilion, ry: 0, pond: false },
     ];
 
     this.s = Math.min((W - PAD * 2) / (X1 - X0), (H - PAD * 2) / (Z1 - Z0));

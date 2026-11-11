@@ -12,7 +12,8 @@ import { create as longwang } from './halls/Longwang.js';
 import { create as caishen } from './halls/Caishen.js';
 import { create as wuguan } from './halls/Wuguan.js';
 import { create as zutang } from './halls/Zutang.js';
-const factories={shijia,chaoyin,guanyin,lingxiao,yaoshi,longwang,caishen,wuguan,zutang};
+import { create as wenchuang } from './halls/Wenchuang.js';
+const factories={shijia,chaoyin,guanyin,lingxiao,yaoshi,longwang,caishen,wuguan,zutang,wenchuang};
 
 export function installHall(world,cfg,blockers,surfaces,interactives,updaters){
  const factory=factories[cfg.id];if(!factory)return;
