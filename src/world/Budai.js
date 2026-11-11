@@ -24,5 +24,5 @@ export function createBudai(scale=1.6){
  b(.17,.14,.14,0,2.78,.49,light);b(.43,.18,.04,0,2.59,.46,dark);b(.32,.055,.045,0,2.66,.49,gold);b(.28,.06,.055,0,2.49,.47,light);
  // Prayer beads drape from the right hand (viewer left).
  for(let i=0;i<12;i++){const a=i*Math.PI*2/12;b(.1,.1,.1,-1.1+Math.sin(a)*.18,1.05+Math.cos(a)*.34,.78,light);}
- batchStatue(g);g.scale.setScalar(scale);return g;
+ batchStatue(g);g.userData.isStatue=true;g.userData.statue={kind:'budai',opts:{scale}};g.scale.setScalar(scale);return g;
 }

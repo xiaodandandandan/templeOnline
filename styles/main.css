@@ -291,6 +291,11 @@ canvas { display: block; touch-action: none; }
   letter-spacing: 1.6px;
   color: rgba(23, 19, 16, 0.58);
 }
+.touch-copy { display: none; }
+@media (pointer: coarse) {
+  .desktop-copy { display: none; }
+  .touch-copy { display: inline; }
+}
 .enter {
   margin-top: 30px;
   appearance: none;

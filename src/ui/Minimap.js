@@ -7,6 +7,8 @@ const X0 = OUTDOOR.bounds.minX - 1;
 const X1 = OUTDOOR.bounds.maxX + 1;
 const Z0 = OUTDOOR.bounds.minZ - 1;
 const Z1 = OUTDOOR.bounds.maxZ + 3;
+const Z_MIN = Math.min(...OUTDOOR.bands.flatMap((b) => [b.z0, b.z1]));
+const Z_MAX = Math.max(...OUTDOOR.bands.flatMap((b) => [b.z0, b.z1]));
 
 const SHORT = {
   tianwang: '山门',
@@ -41,9 +43,9 @@ export class Minimap {
     if (this.ctx) this.ctx.setTransform(2, 0, 0, 2, 0, 0);
 
     this.halls = [
-      ...OUTDOOR.entrances.map((e) => ({ id: e.id, name: e.name, x: e.x, z: e.z, w: e.w, d: e.d, pond: false })),
-      ...(OUTDOOR.scenery || []).map((e) => ({ id: e.id, name: e.name, x: e.x, z: e.z, w: e.w, d: e.d, pond: false })),
-      { id: OUTDOOR.garden.id, name: '莲池', ...OUTDOOR.garden, w: 5, d: 5, pond: true },
+      ...OUTDOOR.entrances.map((e) => ({ id: e.id, name: e.name, x: e.x, z: e.z, w: e.w, d: e.d, ry: e.ry || 0, pond: false })),
+      ...(OUTDOOR.scenery || []).map((e) => ({ id: e.id, name: e.name, x: e.x, z: e.z, w: e.w, d: e.d, ry: e.ry || 0, pond: false })),
+      { id: OUTDOOR.garden.id, name: '莲池', ...OUTDOOR.garden, w: 5, d: 5, ry: 0, pond: true },
     ];
 
     this.s = Math.min((W - PAD * 2) / (X1 - X0), (H - PAD * 2) / (Z1 - Z0));
@@ -97,30 +99,35 @@ export class Minimap {
         }
       } else if (low > 0.01) {
         ctx.fillStyle = 'rgba(120,108,86,0.06)';
-        ctx.fillRect(this.x(-23), this.y(z0), 46 * s, (z1 - z0) * s);
+        const half = OUTDOOR.terraceHalf;
+        ctx.fillRect(this.x(-half), this.y(z0), half * 2 * s, (z1 - z0) * s);
       }
     }
 
+    // 中轴路面：从最北台地一直铺到山门，而不是写死旧地图的 -53.5。
+    const axisHalf = OUTDOOR.axisHalf;
     ctx.fillStyle = 'rgba(203,190,164,0.7)';
-    ctx.fillRect(this.x(-4.5), this.y(-53.5), 9 * s, (60 + 53.5) * s);
+    ctx.fillRect(this.x(-axisHalf), this.y(Z_MIN), axisHalf * 2 * s, (Z_MAX - Z_MIN) * s);
 
-    // 山门围墙
+    // 山门南墙：实际 buildWall() 是一段连续 12m 宽的墙。
+    const wall = OUTDOOR.wall;
     ctx.strokeStyle = 'rgba(78,68,55,0.6)';
     ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(this.x(-24), this.y(60));
-    ctx.lineTo(this.x(-3), this.y(60));
-    ctx.moveTo(this.x(3), this.y(60));
-    ctx.lineTo(this.x(24), this.y(60));
+    ctx.moveTo(this.x(-wall.half), this.y(wall.z));
+    ctx.lineTo(this.x(wall.half), this.y(wall.z));
     ctx.stroke();
 
     // 殿宇
     for (const h of this.halls) {
       const cur = map.id === h.id;
-      const x = this.x(h.x - h.w / 2);
-      const y = this.y(h.z - h.d / 2);
-      const w = h.w * s;
-      const d = h.d * s;
+      // 左右殿堂旋转 90° 后，地图上的占地位宽高互换。
+      const fw = h.ry ? h.d : h.w;
+      const fd = h.ry ? h.w : h.d;
+      const x = this.x(h.x - fw / 2);
+      const y = this.y(h.z - fd / 2);
+      const w = fw * s;
+      const d = fd * s;
       ctx.fillStyle = h.pond
         ? 'rgba(96,124,118,0.9)'
         : cur

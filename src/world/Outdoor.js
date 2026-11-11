@@ -1,4 +1,5 @@
 import { installHall } from './OpenHalls.js';
+import { mergeStatic } from '../core/MergeStatic.js';
 import * as THREE from 'three';
 import { OUTDOOR } from '../config/halls.js';
 import { M, plaqueMaterial } from './Materials.js';
@@ -9,6 +10,7 @@ import {
 import { createStatue, createMaitreya, createHeavenlyKing } from './Statue.js';
 import { createAltar } from './Altar.js';
 import { createCushion } from './Cushion.js';
+import { addLocalBlocker, addLocalSurface, inFootprint } from './Orientation.js';
 
 function heightAt(z) {
   for (const b of OUTDOOR.bands) {
@@ -20,7 +22,7 @@ function heightAt(z) {
   return z > OUTDOOR.bands[0].z0 ? 0 : 3.35;
 }
 
-const STAIR_HALF = 4.5;
+const STAIR_HALF = OUTDOOR.axisHalf;
 const STAIR_STEPS = 9;
 
 /** 地面高度：台阶按真实踏面离散取样，台阶两侧取平台高度 */
@@ -42,6 +44,8 @@ function terrainHeight(z, x = 0) {
 }
 
 function buildTerraces(g, blockers, surfaces) {
+  const sideW = OUTDOOR.terraceHalf - STAIR_HALF;
+  const sideX = STAIR_HALF + sideW / 2;
   for (const b of OUTDOOR.bands) {
     const z0 = Math.min(b.z0, b.z1);
     const z1 = Math.max(b.z0, b.z1);
@@ -53,7 +57,7 @@ function buildTerraces(g, blockers, surfaces) {
       // 台阶两侧补平台，中央留给阶梯
       if (low > 0.01) {
         for (const side of [-1, 1]) {
-          box(g, 42.5, low, depth, side * 25.75, low / 2, cz, M.stone, { cast: false });
+          box(g, sideW, low, depth, side * sideX, low / 2, cz, M.stone, { cast: false });
         }
       }
       const southZ = Math.max(b.z0, b.z1);
@@ -75,10 +79,10 @@ function buildTerraces(g, blockers, surfaces) {
       if (rise > 0.2 && rise <= 0.8) {
         const midY = low + rise / 2;
         for (const side of [-1, 1]) {
-          box(g, 42.5, rise / 2, 0.6, side * 25.75, low + rise / 4, northZ + 0.3, M.stoneStep, { cast: false });
+          box(g, sideW, rise / 2, 0.6, side * sideX, low + rise / 4, northZ + 0.3, M.stoneStep, { cast: false });
           surfaces.push({
-            minX: side < 0 ? -47 : 4.5,
-            maxX: side < 0 ? -4.5 : 47,
+            minX: side < 0 ? -OUTDOOR.terraceHalf : STAIR_HALF,
+            maxX: side < 0 ? -STAIR_HALF : OUTDOOR.terraceHalf,
             minZ: northZ,
             maxZ: northZ + 0.6,
             y: midY,
@@ -87,12 +91,12 @@ function buildTerraces(g, blockers, surfaces) {
       }
     } else {
       if (low > 0.01) {
-        box(g, 94, low, depth, 0, low / 2, cz, M.stone, { cast: false });
+        box(g, OUTDOOR.terraceHalf * 2, low, depth, 0, low / 2, cz, M.stone, { cast: false });
       }
       // paved axis
-      plane(g, 9, depth - 0.05, 0, b.y0 + 0.015, cz, M.path, [-Math.PI / 2, 0, 0]);
-      plane(g, 42.5, depth - 0.05, -25.75, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
-      plane(g, 42.5, depth - 0.05, 25.75, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
+      plane(g, STAIR_HALF * 2, depth - 0.05, 0, b.y0 + 0.015, cz, M.path, [-Math.PI / 2, 0, 0]);
+      plane(g, sideW, depth - 0.05, -sideX, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
+      plane(g, sideW, depth - 0.05, sideX, b.y0 + 0.012, cz, M.earth, [-Math.PI / 2, 0, 0]);
     }
   }
 }
@@ -129,12 +133,14 @@ function buildPreview(g2, cfg, { baseY, plinth, wallH, doorW }) {
 
 function buildHall(g, cfg, blockers, surfaces) {
   const { x, z, w, d, h, platform } = cfg;
+  const ry = cfg.ry || 0;
   const baseY = platform;
   // 台基高度：主殿 0.7m，侧殿/附属殿 0.35m，避免门前过高
   const plinth = cfg.plinth ?? 0.7;
   const fp = baseY + plinth;
   const g2 = new THREE.Group();
   g2.position.set(x, 0, z);
+  g2.rotation.y = ry;
   g.add(g2);
 
   box(g2, w + 1.7, plinth * 0.64, d + 1.7, 0, baseY + plinth * 0.32, 0, M.stone);
@@ -180,10 +186,10 @@ function buildHall(g, cfg, blockers, surfaces) {
     const sh = stepH * (i + 1);
     box(g2, doorW + 1.4, sh + 0.3, 0.5, 0, baseY + (sh - 0.3) / 2,
       d / 2 + 0.25 + 0.5 * (stepCount - i - 0.5), M.stoneStep, { cast: false });
-    surfaces.push({
-      minX: x - stepHalf, maxX: x + stepHalf,
-      minZ: z + d / 2 + 0.25 + 0.5 * (stepCount - i - 1),
-      maxZ: z + d / 2 + 0.25 + 0.5 * (stepCount - i),
+    addLocalSurface(surfaces, cfg, {
+      minX: -stepHalf, maxX: stepHalf,
+      minZ: d / 2 + 0.25 + 0.5 * (stepCount - i - 1),
+      maxZ: d / 2 + 0.25 + 0.5 * (stepCount - i),
       y: baseY + sh,
     });
   }
@@ -231,13 +237,36 @@ function buildHall(g, cfg, blockers, surfaces) {
   }
 
   // Separate walls leave the actual doorway walkable.
-  const wall=(minX,maxX,minZ,maxZ)=>blockers.push({minX:x+minX,maxX:x+maxX,minZ:z+minZ,maxZ:z+maxZ});
+  const wall = (minX, maxX, minZ, maxZ) =>
+    addLocalBlocker(blockers, cfg, minX, maxX, minZ, maxZ);
   wall(-w/2-.25,-w/2+.25,-d/2,d/2);
   wall(w/2-.25,w/2+.25,-d/2,d/2);
   wall(-w/2,w/2,-d/2-.25,-d/2+.25);
   wall(-w/2,-openW/2,d/2-.25,d/2+.25);
   wall(openW/2,w/2,d/2-.25,d/2+.25);
   for(const cx of [-w/2+.55,-w/2*.44,w/2*.44,w/2-.55]) wall(cx-.36,cx+.36,d/2-.11,d/2+.61);
+
+  // 台基比墙体宽 0.85m；不补碰撞时玩家会直接走进石台里。
+  // 只封侧、后和门前两侧，中央门洞/石阶保持可通行。
+  const foundHalfW = (w + 1.7) / 2;
+  const foundHalfD = (d + 1.7) / 2;
+  for (const side of [-1, 1]) {
+    const inner = side < 0 ? -w / 2 + .05 : w / 2 - .05;
+    const outer = side * foundHalfW;
+    addLocalBlocker(blockers, cfg,
+      Math.min(inner, outer), Math.max(inner, outer),
+      -foundHalfD, foundHalfD);
+  }
+  addLocalBlocker(blockers, cfg,
+    -foundHalfW, foundHalfW,
+    -foundHalfD, -d / 2 + .05);
+  const frontStepHalf = (doorW + 1.4) / 2;
+  for (const side of [-1, 1]) {
+    addLocalBlocker(blockers, cfg,
+      side < 0 ? -foundHalfW : frontStepHalf,
+      side < 0 ? -frontStepHalf : foundHalfW,
+      d / 2 - .05, foundHalfD);
+  }
 }
 
 /* ------------------------- 山门（按径山寺实景重建） ------------------------- */
@@ -376,7 +405,7 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   const plinth = 0.7;
   const fp = baseY + plinth;
   const frontZ = d / 2;
-  const lowerWallH = 5.0;
+  const lowerWallH = cfg.h * 0.72;
   const wallTop = fp + lowerWallH;
 
   const g2 = new THREE.Group();
@@ -431,7 +460,7 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   const altar = createAltar({ x: 0, z: -0.55, width: 2.9, scale: 0.86, y: fp });
   g2.add(altar.group);
   updaters.push((dt, t) => altar.update(dt, t));
-  const smoke = new Smoke(g2, { ...altar.smokeOrigin, count: 7, height: 3.0, spread: 0.4 });
+  const smoke = new Smoke(g2, { ...altar.smokeOrigin, count: 4, height: 3.0, spread: 0.4 });
   updaters.push((dt, t) => smoke.update(dt, t));
   for (const dx of [-0.98, 0, 0.98]) {
     g2.add(createCushion({ x: dx, z: 1.05, y: fp + 0.02, scale: 0.92 }));
@@ -599,9 +628,9 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
     });
   }
   // 殿内可走地面（抬升至台基高度）
-  surfaces.push({
-    minX: x - w / 2 + 0.6, maxX: x + w / 2 - 0.6,
-    minZ: z - d / 2 + 0.15, maxZ: z + d / 2 + 0.3,
+  addLocalSurface(surfaces, cfg, {
+    minX: -w / 2 + 0.6, maxX: w / 2 - 0.6,
+    minZ: -d / 2 + 0.15, maxZ: d / 2 + 0.3,
     y: fp,
   });
 }
@@ -619,7 +648,7 @@ function buildIncenseStand(g, blockers, updaters) {
   for (const dx of [-0.14, 0, 0.14]) {
     cylinder(g, 0.025, 0.025, 0.9, x + dx, y + 2.05, z + dx * 0.8, M.woodDark, 4, { cast: false });
   }
-  const smoke = new Smoke(g, { x, y: y + 2.5, z, count: 7, height: 3.8 });
+  const smoke = new Smoke(g, { x, y: y + 2.5, z, count: 4, height: 3.8 });
   updaters.push((dt, t) => smoke.update(dt, t));
   blockers.push({ minX: x - 1.2, maxX: x + 1.2, minZ: z - 0.9, maxZ: z + 0.9 });
 }
@@ -639,7 +668,7 @@ function buildGarden(g, blockers, interactives, updaters, surfaces) {
   g.add(altar.group);
   g.add(createCushion({ x: input.x, z: input.z, y: y + 0.02, scale: 1.05 }));
   updaters.push((dt, t) => altar.update(dt, t));
-  const smokeP = new Smoke(g, { ...altar.smokeOrigin, count: 8, height: 4.2 });
+  const smokeP = new Smoke(g, { ...altar.smokeOrigin, count: 4, height: 4.2 });
   updaters.push((dt, t) => smokeP.update(dt, t));
 
   interactives.push({
@@ -654,7 +683,7 @@ function buildGarden(g, blockers, interactives, updaters, surfaces) {
   blockers.push({ minX: x - 1.9, maxX: x + 1.9, minZ: z + 2.35, maxZ: z + 3.65 });
 }
 
-function buildScenery(g) {
+function buildScenery(g, blockers) {
   for (let i = 0; i < 16; i++) {
     const side = i % 2 ? 1 : -1;
     const px = side * (49 + (i % 4) * 4.2);
@@ -664,11 +693,24 @@ function buildScenery(g) {
   const lanternZ = [34, 13, -3, -21, -40];
   for (let i = 0; i < lanternZ.length; i++) {
     const pz = lanternZ[i];
-    stoneLantern(g, { x: i % 2 ? 10.6 : -10.6, y: heightAt(pz), z: pz, scale: 1.15, light: false });
+    const px = i % 2 ? 10.6 : -10.6;
+    const scale = 1.15;
+    stoneLantern(g, { x: px, y: heightAt(pz), z: pz, scale, light: false });
+    blockers.push({
+      minX: px - 0.62 * scale, maxX: px + 0.62 * scale,
+      minZ: pz - 0.62 * scale, maxZ: pz + 0.62 * scale,
+    });
   }
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2;
-    rock(g, { x: Math.cos(a) * 27, y: -0.05, z: 44 + Math.sin(a) * 6, scale: 0.7 + Math.random() * 0.8, seed: i + 1 });
+    const scale = 0.7 + Math.random() * 0.8;
+    const rx = Math.cos(a) * 27;
+    const rz = 44 + Math.sin(a) * 6;
+    rock(g, { x: rx, y: -0.05, z: rz, scale, seed: i + 1 });
+    blockers.push({
+      minX: rx - 0.85 * scale, maxX: rx + 0.85 * scale,
+      minZ: rz - 0.7 * scale, maxZ: rz + 0.7 * scale,
+    });
   }
   // distant ridges（方块阶梯山，Minecraft 风）
   for (let i = 0; i < 14; i++) {
@@ -692,11 +734,12 @@ function buildScenery(g) {
 }
 
 function buildWall(g, blockers) {
-  box(g, 12, 0.7, 5.0, 0, 0.35, 60, M.stone);
-  box(g, 10.4, 4.2, 0.5, 0, 2.1, 60, M.stoneDark);
-  box(g, 11.4, 0.3, 1.6, 0, 4.35, 60, M.stone, { cast: false });
-  plaque(g, '天下径山', { x: 0, y: 2.7, z: 59.68, w: 5.2, h: 1.9, ry: Math.PI });
-  blockers.push({ minX: -6.0, maxX: 6.0, minZ: 59.2, maxZ: 60.8 });
+  const { half, z } = OUTDOOR.wall;
+  box(g, half * 2, 0.7, 5.0, 0, 0.35, z, M.stone);
+  box(g, half * 2 - 1.6, 4.2, 0.5, 0, 2.1, z, M.stoneDark);
+  box(g, half * 2 - 0.6, 0.3, 1.6, 0, 4.35, z, M.stone, { cast: false });
+  plaque(g, '天下径山', { x: 0, y: 2.7, z: z - 0.32, w: 5.2, h: 1.9, ry: Math.PI });
+  blockers.push({ minX: -half, maxX: half, minZ: z - 0.8, maxZ: z + 0.8 });
 }
 
 export function create(ctx) {
@@ -751,7 +794,8 @@ export function create(ctx) {
   buildWall(world, blockers);
   buildIncenseStand(world, blockers, updaters);
   buildGarden(world, blockers, interactives, updaters, surfaces);
-  buildScenery(world);
+  buildScenery(world, blockers);
+  mergeStatic(world);
 
   const sun = new THREE.DirectionalLight(0xfff0d8, 2.4);
   sun.position.set(38, 62, 28);
@@ -777,6 +821,34 @@ export function create(ctx) {
     scene, bounds, blockers, interactives,
     spawn: OUTDOOR.spawn,
     floorHeight: walkHeight,
+    zoneAt(x, z) {
+      for (const cfg of [...OUTDOOR.entrances, ...OUTDOOR.scenery]) {
+        if (inFootprint(cfg, x, z)) {
+          return { id: cfg.id, name: cfg.name, subtitle: cfg.sub };
+        }
+      }
+      const g = OUTDOOR.garden;
+      if (Math.abs(x - g.x) < 4 && Math.abs(z - g.z) < 4) {
+        return { id: g.id, name: '莲池', subtitle: '露天自在观音' };
+      }
+      return { id: 'outdoor', name: OUTDOOR.name, subtitle: OUTDOOR.subtitle };
+    },
+    cameraTargetAt(x, z) {
+      for (const cfg of [...OUTDOOR.entrances, ...OUTDOOR.scenery]) {
+        if (inFootprint(cfg, x, z)) {
+          return 2.1;
+        }
+      }
+      return 1.2;
+    },
+    cameraMaxAt(x, z) {
+      for (const cfg of [...OUTDOOR.entrances, ...OUTDOOR.scenery]) {
+        if (inFootprint(cfg, x, z, 1.0)) {
+          return Math.max(1.1, Math.min(4.6, cfg.d / 2 - 0.9));
+        }
+      }
+      return 4.6;
+    },
     update(dt, t) {
       for (const u of updaters) u(dt, t);
     },

@@ -386,7 +386,10 @@ export function createStatue(opts = {}) {
         new THREE.Vector3(sd * 0.42 * s, 3.95 * s, -0.12 * s), 0.07 * s, sc.trim, 4);
     }
   }
-  return batchStatue(g);
+  const root = batchStatue(g);
+  root.userData.isStatue = true;
+  root.userData.statue = { kind: 'statue', opts: { ...opts } };
+  return root;
 }
 
 /* ======================= 水月观音组像（实景参考） ======================= */
@@ -688,7 +691,10 @@ export function createRoyalGuanyin({ scale = 1.55 } = {}) {
   royalHalo(g, s);
   royalBody(g, s);
   royalHead(g, s);
-  return batchStatue(g);
+  const root = batchStatue(g);
+  root.userData.isStatue = true;
+  root.userData.statue = { kind: 'royal', opts: { scale } };
+  return root;
 }
 
 /* 龙女头部：高髻、金饰、红飘带 */
@@ -849,7 +855,10 @@ export function createAttendant({ variant = 'longnv', scale = 1 } = {}) {
   attendantLotus(g, s);
   if (variant === 'shancai') shancaiBody(g, s);
   else longnvBody(g, s);
-  return batchStatue(g);
+  const root = batchStatue(g);
+  root.userData.isStatue = true;
+  root.userData.statue = { kind: 'attendant', opts: { variant, scale } };
+  return root;
 }
 
 /* ======================= 天王殿：弥勒佛与四大天王 ======================= */
@@ -1267,5 +1276,8 @@ export function createHeavenlyKing({ variant = 'pipa', scale = 1.2 } = {}) {
   kingRockBase(g, s);
   kingBody(g, s);
   (WEAPONS[variant] || weaponPipa)(g, s);
-  return batchStatue(g);
+  const root = batchStatue(g);
+  root.userData.isStatue = true;
+  root.userData.statue = { kind: 'king', opts: { variant, scale } };
+  return root;
 }

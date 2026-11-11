@@ -1,0 +1,14 @@
+{
+  "name": "temple-online",
+  "version": "0.1.0",
+  "private": true,
+  "description": "径山寺 · 线上礼佛（Three.js 体素风第一/第三人称漫游）",
+  "scripts": {
+    "start": "node tools/serve.cjs",
+    "test": "node --no-warnings --experimental-vm-modules tests/open-halls.cjs",
+    "render:backdrops": "node tools/render-server.cjs"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

@@ -1,0 +1,95 @@
+# 径山寺 · 线上礼佛
+
+一个基于 Three.js / 体素风建筑的线上礼佛与寺院漫游 Demo。无需构建，直接由静态服务器托管 `index.html` 和 `src/` 即可运行。
+
+## 运行
+
+```bash
+# Node 16+
+npm start
+# 打开 http://127.0.0.1:8000/
+```
+
+也可以使用任意静态服务器：
+
+```bash
+python3 -m http.server 8000
+```
+
+> 不要直接双击 `index.html`。浏览器不允许 `file://` 加载 ES Module。
+
+## 操作
+
+| 操作 | 桌面 | 手机 |
+| --- | --- | --- |
+| 移动 | `W A S D` / 方向键 | 左下摇杆 |
+| 快走 | `Shift` | 摇杆推满 |
+| 环绕视角 | 拖动鼠标 / 双击锁定指针 | 单指拖动画面 |
+| 互动 / 跪拜 | `E` | 「互动」按钮 |
+| 合十拜拜 | `Space` | 「拜拜」按钮 |
+| 起身 | `E` | 「互动」按钮 |
+| 地图 | 右上角「图」 | 右上角「图」 |
+
+## 画质
+
+默认使用 `medium`：只保留 Bloom，不跑 SSAO，DPR 上限 1.4。可通过 URL 参数切换：
+
+```text
+http://127.0.0.1:8000/?quality=low      # 无后处理、无阴影、DPR 1
+http://127.0.0.1:8000/?quality=medium   # 默认，Bloom，DPR 1.4
+http://127.0.0.1:8000/?quality=high     # SSAO + Bloom + 阴影，DPR 1.75
+```
+
+移动端（`pointer: coarse`）默认走 `low`。
+
+## 性能策略
+
+- `src/core/MergeStatic.js` 把同材质、同阴影配置的静态 Mesh 合并，显著减少 draw call。
+- 七座主殿的佛像与后墙使用 `assets/backdrops/*.jpg` 的预渲染 2.5D 背景，运行时不再生成佛像方块几何；前景香案、蒲团和部分墙饰仍是 3D。
+- `src/world/HallInterior.js` 用轻量壁画、墙裙、顶棚和梁补足室内，不复制完整 Room 壳。
+- 小殿堂会收紧第三人称相机；相机过近时隐藏玩家模型，避免后脑勺挡住佛像。
+- 左右两侧的观音堂、药师殿、龙王殿、财神殿、祖堂、五观堂通过 `ry = ±π/2` 转向中轴；中轴建筑保持朝南。
+- 殿堂层高整体提高约 30%，并重新生成对应宽高比的背景图，室内视觉空间更大。
+
+重新生成殿堂背景图：
+
+```bash
+npm run render:backdrops
+# 打开 http://127.0.0.1:8776/，页面会渲染并写入 assets/backdrops/
+```
+
+## 测试
+
+```bash
+npm test
+# 等价于 node --no-warnings --experimental-vm-modules tests/open-halls.cjs
+```
+
+`tests/open-halls.cjs` 覆盖：
+
+- 26 个蒲团与 26 个跪拜交互一一对应；
+- 交互点不与碰撞体重叠；
+- 7 座殿堂、祖堂、五观堂的门洞直行通过；
+- 殿堂内 HUD 区域识别、小殿堂相机距离。
+
+视觉、WebGL 和真实 GPU 帧率仍需在浏览器中检查。
+
+## 结构
+
+```text
+index.html                 入口与启动兜底
+src/main.js                启动、WebGL 检测、错误展示
+src/core/                  引擎、输入、玩家、地图、静态合并
+src/world/                 室外场景、殿堂、室内、佛像/背景
+src/config/halls.js        寺院布局与殿堂配置
+assets/backdrops/          预渲染的殿堂 2.5D 背景
+tools/                     静态服务器与背景渲染工具
+tests/                     无浏览器回归测试
+vendor/three.module.js     Three.js r170（MIT）
+```
+
+## 已知限制
+
+- 预渲染背景是正面视角的 2.5D 画面；从殿堂极侧方观察时会看到平面感。
+- 殿堂内部是压缩后的展示尺度，不是真实建筑尺度。
+- 没有后端、账号、存档或多人同步。

@@ -51,7 +51,8 @@
     <div class="start-line"></div>
     <div class="start-desc">
       沿五进中轴拾阶而上，五凤山门、释迦宝殿、潮音堂，直至凌霄阁。<br />
-      直接步行进入殿堂；走到蒲团前按 E 跪拜，按空格合十拜拜；也可站定后按空格合十。
+      <span class="desktop-copy">直接步行进入殿堂；走到蒲团前按 E 跪拜，按空格合十拜拜；也可站定后按空格合十。</span>
+      <span class="touch-copy">直接步行进入殿堂；走到蒲团前点「互动」跪拜，点「拜拜」合十。</span>
     </div>
     <button id="enter" class="enter">入 山</button>
     <div class="start-note" id="startNote">点击后拖动鼠标环绕视角，按 Esc 释放鼠标</div>
@@ -67,16 +68,25 @@
 
 <script type="module" src="./src/main.js"></script>
 <script>
+  // 只在模块脚本确实没有启动时兜底；不能覆盖 main.js 已经展示的
+  // WebGL / 场景构建错误，否则用户会被引导到错误的方向。
   window.addEventListener('load', () => {
     setTimeout(() => {
-      if (window.__JINGSHAN__) return;
-      document.getElementById('start').classList.add('hidden');
       const nogl = document.getElementById('nogl');
-      nogl.querySelector('.start-title').textContent = '请通过 HTTP 打开';
-      nogl.querySelector('.start-desc').textContent =
-        '浏览器不允许 file:// 加载模块。请在当前目录运行 python3 -m http.server 8000，再访问 http://localhost:8000/。';
+      const boot = window.__JINGSHAN_BOOT__;
+      if (window.__JINGSHAN__ || (boot && boot.status !== 'booting')) return;
+      if (nogl && !nogl.classList.contains('hidden')) return;
+
+      document.getElementById('start').classList.add('hidden');
+      if (!nogl) return;
+
+      const isFile = window.location.protocol === 'file:';
+      nogl.querySelector('.start-title').textContent = isFile ? '请通过 HTTP 打开' : '脚本加载失败';
+      nogl.querySelector('.start-desc').textContent = isFile
+        ? '浏览器不允许 file:// 加载 ES Module。请在项目目录运行 python3 -m http.server 8000，再访问 http://localhost:8000/。'
+        : '页面脚本没有正常启动。请确认静态服务器返回了 index.html 和 src/ 下的模块文件，并检查浏览器控制台。';
       nogl.classList.remove('hidden');
-    }, 2500);
+    }, 6000);
   });
 </script>
 </body>

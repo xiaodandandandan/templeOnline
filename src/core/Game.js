@@ -23,12 +23,14 @@ export class Game {
     this.started = false;
     this.transitioning = false;
     this.map = null;
+    this._zoneId = '';
 
     this.engine.start((dt, t) => this.update(dt, t));
   }
 
   async init() {
     await this.goTo('outdoor', OUTDOOR.spawn, { instant: true });
+    this._zoneId = 'outdoor';
     this.hud.setZone(this.map.name, this.map.subtitle);
     this.loadEnvironment();
     if (this._pendingBegin) this.begin();
@@ -90,17 +92,22 @@ export class Game {
     if (!instant) await this.hud.fadeIn();
     this.maps.trim(id, this.player.avatar.root);
     } catch (err) {
-      if(previous) {
-        this.map=previous;
-        this.player.attach(previous,previousSpawn);
+      // 初次加载失败时 previous 为 null，也必须把 map 置空并重新抛出；
+      // 否则 init() 会继续执行，留下一个半初始化的场景。
+      this.map = previous || null;
+      this.player.avatar.root.removeFromParent();
+      if (previous) {
+        this.player.attach(previous, previousSpawn);
         this.engine.setScene(previous.scene);
         previous.scene.add(this.player.avatar.root);
         this._applyEnvironment();
+      } else {
+        this.engine.setScene(null);
       }
       console.error('[径山寺] 切换失败', err);
       this.hud.toast('进入失败，请重试');
       await this.hud.fadeIn();
-      if (!this.map) throw err;
+      if (!previous) throw err;
     } finally {
       this.transitioning = false;
     }
@@ -113,6 +120,7 @@ export class Game {
     if (!this.started || this.transitioning) return;
 
     this.player.update(dt, this.input, this.map);
+    this.updateZone();
     if (this.transitioning || this.player.bowing) {
       this.hud.prompt(null);
       return;
@@ -131,6 +139,14 @@ export class Game {
     }
   }
 
+  updateZone() {
+    if (!this.map?.zoneAt) return;
+    const zone = this.map.zoneAt(this.player.position.x, this.player.position.z);
+    if (!zone || zone.id === this._zoneId) return;
+    this._zoneId = zone.id;
+    this.hud.setZone(zone.name, zone.subtitle);
+  }
+
   interact() {
     if (!this.started || this.transitioning || this.player.bowing || !this.map) return;
     if (this.player.kneeling) {
@@ -139,26 +155,10 @@ export class Game {
     }
 
     const target = this.player.nearest(this.map.interactives);
-    if (!target) return;
+    if (!target || target.type !== 'cushion') return;
 
-    if (target.type === 'enter') {
-      this.goTo(target.target);
-      return;
-    }
-
-    if (target.type === 'exit') {
-      const cfg = [...OUTDOOR.entrances, ...OUTDOOR.scenery].find((e) => e.id === this.map.id);
-      const back = cfg
-        ? { x: cfg.input.x, z: cfg.input.z, yaw: Math.PI }
-        : OUTDOOR.spawn;
-      this.goTo('outdoor', back);
-      return;
-    }
-
-    if (target.type === 'cushion') {
-      const facing = Math.atan2(target.statueX - target.x, target.statueZ - target.z);
-      this.player.startKneel(target.x, target.z, facing);
-    }
+    const facing = Math.atan2(target.statueX - target.x, target.statueZ - target.z);
+    this.player.startKneel(target.x, target.z, facing);
   }
 
   // 合十拜拜：站着或跪着都可以

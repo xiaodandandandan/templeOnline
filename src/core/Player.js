@@ -100,10 +100,11 @@ export class Player {
 
     // 第三人称环绕相机：位于小人斜后方，遇墙自动收近
     const side = 0.55;
+    const maxDist = this.map?.cameraMaxAt?.(x, z) ?? CAM_DIST;
     let dist = CAM_MIN;
     let camX = x;
     let camZ = z;
-    for (let candidate = 0.08; candidate <= CAM_DIST; candidate += 0.08) {
+    for (let candidate = 0.08; candidate <= maxDist; candidate += 0.08) {
       const horiz = candidate * Math.cos(this.pitch);
       const shoulder = side * Math.min(1, candidate / CAM_DIST);
       const cx = x + Math.sin(this.yaw) * horiz + Math.cos(this.yaw) * shoulder;
@@ -113,8 +114,10 @@ export class Player {
       camX = cx;
       camZ = cz;
     }
-    this.avatar.root.visible = dist > 0.65;
-    const ty = y + TARGET_H;
+    // 小殿堂里相机会被墙拉得很近；此时隐藏小人，避免整个屏幕被后脑勺占满。
+    this.avatar.root.visible = dist > 2.2;
+    const targetH = this.map?.cameraTargetAt?.(x, z) ?? TARGET_H;
+    const ty = y + targetH;
     const floor = this.map ? this.map.floorHeight(camZ, camX) : 0;
     const camY = Math.max(y + 0.4, floor + 0.24, ty + 0.95 - Math.sin(this.pitch) * dist);
 

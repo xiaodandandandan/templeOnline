@@ -38,7 +38,7 @@ export function createHallBase({
     const altar = createAltar({ x, z, width, scale, y: 0, lightOn });
     scene.add(altar.group);
     updaters.push((dt, t) => altar.update(dt, t));
-    const smoke = new Smoke(scene, { ...altar.smokeOrigin, count: 8, height: 3.4, spread: 0.5 });
+    const smoke = new Smoke(scene, { ...altar.smokeOrigin, count: 4, height: 3.4, spread: 0.5 });
     updaters.push((dt, t) => smoke.update(dt, t));
     blockers.push({
       minX: x - width / 2 - 0.35, maxX: x + width / 2 + 0.35,

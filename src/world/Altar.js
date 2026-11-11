@@ -14,6 +14,7 @@ function candle(parent, x, y, z, flames, scale) {
 
 export function createAltar({ x = 0, z = 0, width = 4.2, scale = 1, y = 0, lightOn = true }) {
   const g = new THREE.Group();
+  g.userData.isAltar = true;
   g.position.set(x, y, z);
   const w = width;
 

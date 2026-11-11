@@ -140,9 +140,11 @@ export function column(parent, { x, y = 0, z, h = 6, radius = 0.36, mat = M.lacq
 export function plaque(parent, name, { x = 0, y = 4.2, z = 0, w = 3.4, h = 1.4, ry = 0 }) {
   const normal = Math.cos(ry) >= 0 ? 1 : -1;
   const frame = box(parent, w + 0.32, h + 0.32, 0.12, x, y, z - 0.06 * normal, M.black, { cast: false });
+  frame.userData.isPlaque = true;
   const board = new THREE.Mesh(new THREE.PlaneGeometry(w, h), plaqueMaterial(name));
   board.position.set(x, y, z + 0.01 * normal);
   board.rotation.y = ry;
+  board.userData.isPlaque = true;
   parent.add(board);
   frame.rotation.y = ry;
   return board;
@@ -152,8 +154,11 @@ export function plaqueVertical(parent, name, { x = 0, y = 0, z = 0, w = 1.1, h =
   const normal = Math.cos(ry) >= 0 ? 1 : -1;
   const frame = box(parent, w + 0.34, h + 0.34, 0.16, x, y, z - 0.07 * normal, M.lacquerDark, { cast: false });
   const gold = box(parent, w + 0.12, h + 0.12, 0.06, x, y, z, M.goldDim, { cast: false });
+  frame.userData.isPlaque = true;
+  gold.userData.isPlaque = true;
   const board = new THREE.Mesh(new THREE.PlaneGeometry(w, h), verticalPlaqueMaterial(name));
   board.position.set(x, y, z + 0.06 * normal);
+  board.userData.isPlaque = true;
   board.rotation.y = ry;
   parent.add(board);
   frame.rotation.y = ry;

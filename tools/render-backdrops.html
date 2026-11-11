@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>render temple backdrops</title>
+<style>html,body{margin:0;background:#111;color:#eee;font:14px monospace}canvas{display:block}#status{padding:12px}</style>
+<script type="importmap">
+{ "imports": { "three": "../vendor/three.module.js", "three/addons/": "../vendor/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="status">starting…</div>
+<script type="module">
+import * as THREE from 'three';
+import { create as shijia } from '../src/world/halls/Shijia.js';
+import { create as chaoyin } from '../src/world/halls/Chaoyin.js';
+import { create as guanyin } from '../src/world/halls/Guanyin.js';
+import { create as lingxiao } from '../src/world/halls/Lingxiao.js';
+import { create as yaoshi } from '../src/world/halls/Yaoshi.js';
+import { create as longwang } from '../src/world/halls/Longwang.js';
+import { create as caishen } from '../src/world/halls/Caishen.js';
+import { OUTDOOR } from '../src/config/halls.js';
+
+const factories = { shijia, chaoyin, guanyin, lingxiao, yaoshi, longwang, caishen };
+const W = 1536;
+const canvas = document.getElementById('c');
+const status = document.getElementById('status');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.95;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x17120e, 1);
+
+const ids = Object.keys(factories);
+for (const id of ids) {
+  status.textContent = `rendering ${id}…`;
+  const hall = factories[id]();
+  const scene = hall.scene;
+  scene.background = new THREE.Color(0x17120e);
+
+  scene.traverse((o) => {
+    if (o.userData.isCushion || o.userData.isAltar || o.isSprite || o.isPoints) {
+      o.visible = false;
+    }
+  });
+
+  const { d, h } = hall.dimensions;
+  const outer = [...OUTDOOR.entrances, ...OUTDOOR.scenery].find((c) => c.id === id);
+  // 输出宽高比与运行时目标后墙一致，直接铺满墙面，不拉伸/不留白。
+  const aspect = outer ? outer.w / (outer.h * 0.72) : (hall.dimensions.w / (h * 0.72));
+  const H = Math.round(W / aspect);
+  renderer.setSize(W, H, false);
+  const camera = new THREE.PerspectiveCamera(52, aspect, 0.1, 200);
+  camera.position.set(0, h * 0.4, d / 2 - 1.6);
+  camera.lookAt(0, h * 0.42, -d / 2);
+
+  renderer.render(scene, camera);
+  const image = canvas.toDataURL('image/jpeg', 0.92);
+  const response = await fetch(`/save?name=${encodeURIComponent(id)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: image,
+  });
+  if (!response.ok) throw new Error(`save ${id} failed: ${response.status}`);
+}
+
+status.textContent = 'DONE';
+document.title = 'DONE';
+</script>
+</body>
+</html>

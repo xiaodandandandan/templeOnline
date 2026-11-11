@@ -88,6 +88,12 @@ export class Input {
 
   _bind() {
     window.addEventListener('keydown', (e) => {
+      // 让键盘用户可以用 Space 激活“入山”/地图等按钮，而不是被游戏
+      // 的 Space=合十抢占。游戏开始后焦点通常回到画布，仍会正常拜拜。
+      const control = e.target instanceof Element
+        && e.target.closest('button, a[href], input, textarea, select');
+      if (control) return;
+
       if (MOVE_KEYS.has(e.code)) e.preventDefault();
       this.keys.add(e.code);
       if (e.code === 'KeyE' && !e.repeat) this.onInteract();
@@ -138,6 +144,10 @@ export class Input {
       });
       this._stick.addEventListener('pointerup', reset);
       this._stick.addEventListener('pointercancel', reset);
+      this._stick.addEventListener('lostpointercapture', reset);
+      this._stick.addEventListener('pointerleave', (e) => {
+        if (e.buttons === 0) reset();
+      });
     }
 
     const act = document.getElementById('actBtn');
