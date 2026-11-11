@@ -154,15 +154,15 @@ function buildHall(g, cfg, blockers, surfaces) {
   const doorH = Math.min(4.6, wallH * 0.78);
   const doorW = Math.min(4.4, w * 0.32);
   const openW = doorW + 0.52;
-  box(g2, w, wallH, 0.5, 0, wallY, -d / 2, M.plaster, { cast: true });
-  box(g2, 0.5, wallH, d, -w / 2, wallY, 0, M.plaster, { cast: true });
-  box(g2, 0.5, wallH, d, w / 2, wallY, 0, M.plaster, { cast: true });
+  box(g2, w, wallH, 0.5, 0, wallY, -d / 2, M.wallWhite, { cast: true });
+  box(g2, 0.5, wallH, d, -w / 2, wallY, 0, M.wallWhite, { cast: true });
+  box(g2, 0.5, wallH, d, w / 2, wallY, 0, M.wallWhite, { cast: true });
   // 前墙留出门洞：左右两段 + 门楣
-  box(g2, (w - openW) / 2, wallH, 0.5, -(w + openW) / 4, wallY, d / 2, M.plaster, { cast: true });
-  box(g2, (w - openW) / 2, wallH, 0.5, (w + openW) / 4, wallY, d / 2, M.plaster, { cast: true });
+  box(g2, (w - openW) / 2, wallH, 0.5, -(w + openW) / 4, wallY, d / 2, M.wallWhite, { cast: true });
+  box(g2, (w - openW) / 2, wallH, 0.5, (w + openW) / 4, wallY, d / 2, M.wallWhite, { cast: true });
   const lintelH = wallH - doorH;
   if (lintelH > 0.03) {
-    box(g2, openW, lintelH, 0.5, 0, fp + doorH + lintelH / 2, d / 2, M.plaster, { cast: true });
+    box(g2, openW, lintelH, 0.5, 0, fp + doorH + lintelH / 2, d / 2, M.wallWhite, { cast: true });
   }
 
   // red columns across the front
@@ -305,12 +305,12 @@ function buildArch(parent, { x, y, z, width, height, wallTop, wallT = 0.5, dir =
     const sw = width * steps[i];
     const side = (width - sw) / 2;
     const ry = y + height + rowH * i + rowH / 2;
-    box(parent, side, rowH, wallT, x - sw / 2 - side / 2, ry, z, M.plaster, { cast: true });
-    box(parent, side, rowH, wallT, x + sw / 2 + side / 2, ry, z, M.plaster, { cast: true });
+    box(parent, side, rowH, wallT, x - sw / 2 - side / 2, ry, z, M.wallWhite, { cast: true });
+    box(parent, side, rowH, wallT, x + sw / 2 + side / 2, ry, z, M.wallWhite, { cast: true });
   }
   const crown = y + height + rowH * steps.length;
   if (wallTop - crown > 0.02) {
-    box(parent, width, wallTop - crown, wallT, x, crown + (wallTop - crown) / 2, z, M.plaster, { cast: true });
+    box(parent, width, wallTop - crown, wallT, x, crown + (wallTop - crown) / 2, z, M.wallWhite, { cast: true });
   }
 
   const darkZ = z - dir * 0.62;
@@ -439,8 +439,8 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   plane(g2, w - 0.6, d - 0.6, 0, fp + 0.01, 0, M.floorStone, [-Math.PI / 2, 0, 0]);
 
   // 侧墙
-  box(g2, 0.5, lowerWallH, d, -w / 2, fp + lowerWallH / 2, 0, M.plaster, { cast: true });
-  box(g2, 0.5, lowerWallH, d, w / 2, fp + lowerWallH / 2, 0, M.plaster, { cast: true });
+  box(g2, 0.5, lowerWallH, d, -w / 2, fp + lowerWallH / 2, 0, M.wallWhite, { cast: true });
+  box(g2, 0.5, lowerWallH, d, w / 2, fp + lowerWallH / 2, 0, M.wallWhite, { cast: true });
 
   // 正面与背面白墙墙垛，留出三座拱门
   const piers = [
@@ -451,7 +451,7 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   ];
   for (const wz of [-frontZ, frontZ]) {
     for (const [a, b] of piers) {
-      box(g2, b - a, lowerWallH, 0.5, (a + b) / 2, fp + lowerWallH / 2, wz, M.plaster, { cast: true });
+      box(g2, b - a, lowerWallH, 0.5, (a + b) / 2, fp + lowerWallH / 2, wz, M.wallWhite, { cast: true });
     }
   }
   for (const o of GATE_OPENINGS) {
@@ -565,6 +565,10 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
       x: side * 5.2, y: fp + 4.15, z: frontZ + 0.28,
       width: 4.8, depth: 2.9, rise: 0.9,
     });
+    box(g2, 4.2, 0.1, 0.12, side * 5.2, fp + 3.82, frontZ + 0.72, M.railingTeal, { cast: false });
+    for (const dx of [-1.8, -0.6, 0.6, 1.8]) {
+      box(g2, 0.1, 0.46, 0.1, side * 5.2 + dx, fp + 3.62, frontZ + 0.72, M.railingTeal, { cast: false });
+    }
   }
 
   // 二层楼身
@@ -573,10 +577,10 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   const upperD = 5.2;
   const upperH = 2.35;
   const upperTop = upperBase + upperH;
-  box(g2, upperW, upperH, 0.5, 0, upperBase + upperH / 2, upperD / 2, M.plaster, { cast: true });
-  box(g2, upperW, upperH, 0.5, 0, upperBase + upperH / 2, -upperD / 2, M.plaster, { cast: true });
-  box(g2, 0.5, upperH, upperD, -upperW / 2, upperBase + upperH / 2, 0, M.plaster, { cast: true });
-  box(g2, 0.5, upperH, upperD, upperW / 2, upperBase + upperH / 2, 0, M.plaster, { cast: true });
+  box(g2, upperW, upperH, 0.5, 0, upperBase + upperH / 2, upperD / 2, M.wallWhite, { cast: true });
+  box(g2, upperW, upperH, 0.5, 0, upperBase + upperH / 2, -upperD / 2, M.wallWhite, { cast: true });
+  box(g2, 0.5, upperH, upperD, -upperW / 2, upperBase + upperH / 2, 0, M.wallWhite, { cast: true });
+  box(g2, 0.5, upperH, upperD, upperW / 2, upperBase + upperH / 2, 0, M.wallWhite, { cast: true });
   box(g2, upperW, 0.3, upperD, 0, upperBase + 0.15, 0, M.woodDark, { cast: false });
 
   for (const cx of [-4.2, -1.4, 1.4, 4.2]) {
@@ -755,18 +759,33 @@ function buildCorridor(g, { x, z, length, axis = 'z', y = 0, width = 2.6, height
     box(group, width, 0.16, 0.22, 0, y + height - 0.08, t, M.woodDark, { cast: false });
   }
 
-  // 连廊主体是窄长屋顶，两端加小亭子屋顶。
+  // 连廊主体是窄长屋顶，两端加白墙 + 双层亭顶。
   hippedRoof(group, {
     y: y + height + 0.08, width, depth: length + 0.5, rise: 0.72,
   });
   for (const end of [-1, 1]) {
+    const zEnd = end * (half + 0.08);
+    box(group, width - 0.35, 1.05, 0.16, 0, y + 0.62, zEnd, M.wallWhite, { cast: false });
+    for (const dx of [-width * 0.25, 0, width * 0.25]) {
+      box(group, 0.07, 0.9, 0.18, dx, y + 0.62, zEnd + end * 0.09, M.woodDark, { cast: false });
+    }
+    box(group, width - 0.4, 0.07, 0.19, 0, y + 0.4, zEnd + end * 0.1, M.woodDark, { cast: false });
     hippedRoof(group, {
-      x: 0, y: y + height + 0.35, z: end * (half + 0.1),
-      width: width + 1.0, depth: 3.2, rise: 0.95,
+      x: 0, y: y + height + 0.35, z: zEnd,
+      width: width + 1.2, depth: 3.3, rise: 0.95,
+    });
+    hippedRoof(group, {
+      x: 0, y: y + height + 1.12, z: zEnd,
+      width: width * 0.72, depth: 2.3, rise: 0.72,
     });
   }
   for (const side of [-1, 1]) {
-    box(group, 0.1, 0.72, length, side * (width / 2 - 0.2), y + 0.48, 0, M.woodDark, { cast: false });
+    // 白墙裙 + 青色栏杆
+    box(group, 0.13, 0.6, length, side * (width / 2 - 0.22), y + 0.3, 0, M.wallWhite, { cast: false });
+    box(group, 0.11, 0.12, length, side * (width / 2 - 0.2), y + 0.9, 0, M.railingTeal, { cast: false });
+    for (let t = -half; t <= half; t += 2.0) {
+      box(group, 0.1, 0.5, 0.1, side * (width / 2 - 0.2), y + 0.64, t, M.railingTeal, { cast: false });
+    }
   }
 }
 
@@ -872,7 +891,11 @@ function buildPavilion(g, blockers) {
   hippedRoof(g, { y: y + h * 0.82, width: w * 0.95, depth: d * 0.95, rise: 1.0 });
 
   for (const sx of [-1, 1]) {
-    box(g, 0.12, 0.62, d * 0.72, x + sx * (w / 2 - 0.3), y + h * 0.3, z, M.woodDark, { cast: false });
+    box(g, 0.13, 0.62, d * 0.72, x + sx * (w / 2 - 0.3), y + h * 0.3, z, M.wallWhite, { cast: false });
+    box(g, 0.12, 0.1, d * 0.76, x + sx * (w / 2 - 0.28), y + h * 0.3 + 0.56, z, M.railingTeal, { cast: false });
+    for (let i = -2; i <= 2; i++) {
+      box(g, 0.09, 0.46, 0.09, x + sx * (w / 2 - 0.26), y + h * 0.3 + 0.28, z + i * 0.55, M.railingTeal, { cast: false });
+    }
   }
 }
 

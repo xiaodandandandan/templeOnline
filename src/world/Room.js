@@ -23,10 +23,10 @@ export function buildRoomShell({
   floor.receiveShadow = true;
   g.add(floor);
 
-  box(g, w + 0.6, h, 0.4, 0, h / 2, -halfD - 0.2, M.plaster, { cast: false });
-  box(g, 0.4, h, d + 0.4, -halfW - 0.2, h / 2, 0, M.plaster, { cast: false });
-  box(g, 0.4, h, d + 0.4, halfW + 0.2, h / 2, 0, M.plaster, { cast: false });
-  box(g, w + 0.6, h, 0.4, 0, h / 2, halfD + 0.2, M.plaster, { cast: false });
+  box(g, w + 0.6, h, 0.4, 0, h / 2, -halfD - 0.2, M.wallWhite, { cast: false });
+  box(g, 0.4, h, d + 0.4, -halfW - 0.2, h / 2, 0, M.wallWhite, { cast: false });
+  box(g, 0.4, h, d + 0.4, halfW + 0.2, h / 2, 0, M.wallWhite, { cast: false });
+  box(g, w + 0.6, h, 0.4, 0, h / 2, halfD + 0.2, M.wallWhite, { cast: false });
 
   // wainscot and cornice
   for (const side of [-1, 1]) {

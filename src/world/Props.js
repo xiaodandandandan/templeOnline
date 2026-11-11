@@ -109,7 +109,7 @@ export function stairs(parent, { x = 0, z0, z1, y0, y1, width = 8, steps = 5, ma
   }
 }
 
-export function balustrade(parent, { x0, x1, z0, z1, y0, y1, mat = M.stoneDark }) {
+export function balustrade(parent, { x0, x1, z0, z1, y0, y1, mat = M.railingTeal }) {
   const dx = x1 - x0;
   const dz = z1 - z0;
   const len = Math.hypot(dx, dz);
@@ -120,7 +120,7 @@ export function balustrade(parent, { x0, x1, z0, z1, y0, y1, mat = M.stoneDark }
     const pz = z0 + dz * t;
     const py = y0 + (y1 - y0) * t;
     box(parent, 0.22, 0.96, 0.22, px, py + 0.48, pz, mat, { cast: false });
-    box(parent, 0.3, 0.1, 0.3, px, py + 0.98, pz, M.stone, { cast: false });
+    box(parent, 0.3, 0.1, 0.3, px, py + 0.98, pz, M.railingTealDark, { cast: false });
   }
   const a = new THREE.Vector3(x0, y0 + 0.92, z0);
   const b = new THREE.Vector3(x1, y1 + 0.92, z1);
