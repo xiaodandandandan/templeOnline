@@ -92,6 +92,50 @@ export function hippedRoof(parent, { x = 0, y = 0, z = 0, width, depth, rise, ma
   return null;
 }
 
+/**
+ * 在方块屋顶上补“宋式/唐式”轮廓：瓦脊、正脊鸱尾、
+ * 前檐分段起翘和四角戗脊。仍然是体素块，不增加高模。
+ */
+export function roofDetails(parent, { x = 0, y = 0, z = 0, width, depth, rise }) {
+  const edge = M.roofEdge;
+  const ridge = M.ridge;
+  const topY = y + rise;
+  const ridgeLen = Math.max(width * 0.36, 1.0);
+
+  box(parent, ridgeLen, 0.22, 0.3, x, topY + 0.1, z, ridge, { cast: false });
+  for (const side of [-1, 1]) {
+    const chiwen = box(parent, 0.34, 0.62, 0.34,
+      x + side * ridgeLen / 2, topY + 0.34, z, edge, { cast: false });
+    chiwen.rotation.z = side * 0.24;
+    box(parent, 0.2, 0.2, 0.2, x + side * ridgeLen / 2,
+      topY + 0.68, z, ridge, { cast: false });
+  }
+
+  // 连续檐口板 + 四角短戗脊，避免满屋顶黑色碎块。
+  for (const sz of [-1, 1]) {
+    box(parent, width + 0.3, 0.12, 0.18,
+      x, y + 0.1, z + sz * (depth / 2 + 0.04), edge, { cast: false });
+  }
+  for (const sx of [-1, 1]) {
+    box(parent, 0.18, 0.12, depth + 0.3,
+      x + sx * (width / 2 + 0.04), y + 0.1, z, edge, { cast: false });
+  }
+
+  // 四角戗脊：从檐角短促上挑，只保留四个角。
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      const a = new THREE.Vector3(
+        x + sx * width * 0.42, y + 0.1, z + sz * depth * 0.46,
+      );
+      const b = new THREE.Vector3(
+        x + sx * width * 0.52, y + 0.32, z + sz * depth * 0.54,
+      );
+      beamBetween(parent, a, b, 0.045, edge, 4);
+      box(parent, 0.14, 0.2, 0.14, b.x, b.y + 0.04, b.z, ridge, { cast: false });
+    }
+  }
+}
+
 export function doubleRoof(parent, { x, y, z, width, depth, rise, gap = 1.1 }) {
   hippedRoof(parent, { x, y, z, width, depth, rise });
   hippedRoof(parent, {

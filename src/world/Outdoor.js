@@ -5,7 +5,7 @@ import { OUTDOOR } from '../config/halls.js';
 import { M, plaqueMaterial } from './Materials.js';
 import {
   box, cylinder, sphere, plane, plaque, plaqueVertical, doorSet, column, latticeWindow,
-  hippedRoof, stairs, balustrade, stoneLantern, pineTree, rock, Smoke, dustMotes,
+  hippedRoof, roofDetails, stairs, balustrade, stoneLantern, pineTree, rock, Smoke, dustMotes,
 } from './Props.js';
 import { createStatue, createMaitreya, createHeavenlyKing } from './Statue.js';
 import { createAltar } from './Altar.js';
@@ -214,6 +214,7 @@ function buildHall(g, cfg, blockers, surfaces) {
   box(g2, 0.56, friezeH, d + 0.1, -w / 2 - 0.03, friezeY, 0, M.woodDark, { cast: false });
   box(g2, 0.56, friezeH, d + 0.1, w / 2 + 0.03, friezeY, 0, M.woodDark, { cast: false });
   hippedRoof(g2, { y: eaveY, width: w + 2.0, depth: d + 2.0, rise: h * 0.52 });
+  roofDetails(g2, { y: eaveY, width: w + 2.0, depth: d + 2.0, rise: h * 0.52 });
   if (cfg.tiers > 1) {
     // 楼层必须落在下层屋顶之上，否则会被大屋顶吞掉。
     const tier2Base = eaveY + h * 0.52 + 0.12;
@@ -225,11 +226,23 @@ function buildHall(g, cfg, blockers, surfaces) {
       depth: d * 0.7 + 1.4,
       rise: h * 0.38,
     });
+    roofDetails(g2, {
+      y: tier2Base + 0.16 + h * 0.24,
+      width: w * 0.82 + 1.4,
+      depth: d * 0.7 + 1.4,
+      rise: h * 0.38,
+    });
     if (cfg.tiers > 2) {
       const tier3Base = tier2Base + 0.16 + h * 0.24 + h * 0.38 + 0.1;
       box(g2, w * 0.46, 0.14, d * 0.4, 0, tier3Base + 0.07, 0, M.stoneDark, { cast: false });
       box(g2, w * 0.42, h * 0.18, d * 0.36, 0, tier3Base + 0.14 + h * 0.09, 0, M.lacquer, { cast: false });
       hippedRoof(g2, {
+        y: tier3Base + 0.14 + h * 0.18,
+        width: w * 0.56 + 0.8,
+        depth: d * 0.5 + 0.8,
+        rise: h * 0.28,
+      });
+      roofDetails(g2, {
         y: tier3Base + 0.14 + h * 0.18,
         width: w * 0.56 + 0.8,
         depth: d * 0.5 + 0.8,
@@ -376,6 +389,7 @@ function buildEave(parent, { y, width, depth, rise }) {
     box(parent, 0.14, 0.18, 0.34, rx, y - 0.22, fz + 0.03, M.plasterWhite, { cast: false });
   }
   hippedRoof(parent, { y, width, depth, rise });
+  roofDetails(parent, { y, width, depth, rise });
 }
 
 function buildChiwen(parent, { y, width }) {
@@ -565,6 +579,10 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
       x: side * 5.2, y: fp + 4.15, z: frontZ + 0.28,
       width: 4.8, depth: 2.9, rise: 0.9,
     });
+    roofDetails(g2, {
+      x: side * 5.2, y: fp + 4.15, z: frontZ + 0.28,
+      width: 4.8, depth: 2.9, rise: 0.9,
+    });
     box(g2, 4.2, 0.1, 0.12, side * 5.2, fp + 3.82, frontZ + 0.72, M.railingTeal, { cast: false });
     for (const dx of [-1.8, -0.6, 0.6, 1.8]) {
       box(g2, 0.1, 0.46, 0.1, side * 5.2 + dx, fp + 3.62, frontZ + 0.72, M.railingTeal, { cast: false });
@@ -580,6 +598,10 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
       box(g2, 0.1, 0.42, 0.1, side * 5.2 + dx, fp + 5.18, frontZ + 1.2, M.railingTeal, { cast: false });
     }
     hippedRoof(g2, {
+      x: side * 5.2, y: fp + 5.45, z: frontZ + 0.18,
+      width: 4.35, depth: 2.55, rise: 0.78,
+    });
+    roofDetails(g2, {
       x: side * 5.2, y: fp + 5.45, z: frontZ + 0.18,
       width: 4.35, depth: 2.55, rise: 0.78,
     });
@@ -616,7 +638,6 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
   buildDougong(g2, { y: upperTop, z: upperD / 2 + 0.42, width: upperW + 0.3, dir: 1 });
   buildDougong(g2, { y: upperTop, z: -upperD / 2 - 0.42, width: upperW + 0.3, dir: -1 });
   buildEave(g2, { y: upperTop + 0.6, width: upperW + 1.5, depth: upperD + 1.5, rise: 1.15 });
-  buildChiwen(g2, { y: upperTop + 0.6 + 1.18, width: upperW + 1.5 });
 
   // 门前石阶
   const stepCount = 3;
@@ -788,7 +809,15 @@ function buildCorridor(g, { x, z, length, axis = 'z', y = 0, width = 2.6, height
       x: 0, y: y + height + 0.35, z: zEnd,
       width: width + 1.2, depth: 3.3, rise: 0.95,
     });
+    roofDetails(group, {
+      x: 0, y: y + height + 0.35, z: zEnd,
+      width: width + 1.2, depth: 3.3, rise: 0.95,
+    });
     hippedRoof(group, {
+      x: 0, y: y + height + 1.12, z: zEnd,
+      width: width * 0.72, depth: 2.3, rise: 0.72,
+    });
+    roofDetails(group, {
       x: 0, y: y + height + 1.12, z: zEnd,
       width: width * 0.72, depth: 2.3, rise: 0.72,
     });
@@ -893,6 +922,7 @@ function buildPavilion(g, blockers) {
 
   // 两层亭子：下层檐 + 上层小楼身和檐。
   hippedRoof(g, { y: y + h * 0.52, width: w + 1.8, depth: d + 1.8, rise: 1.15 });
+  roofDetails(g, { y: y + h * 0.52, width: w + 1.8, depth: d + 1.8, rise: 1.15 });
   box(g, w * 0.62, h * 0.2, d * 0.62, x, y + h * 0.62, z, M.lacquer, { cast: false });
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
@@ -903,6 +933,7 @@ function buildPavilion(g, blockers) {
     }
   }
   hippedRoof(g, { y: y + h * 0.82, width: w * 0.95, depth: d * 0.95, rise: 1.0 });
+  roofDetails(g, { y: y + h * 0.82, width: w * 0.95, depth: d * 0.95, rise: 1.0 });
 
   for (const sx of [-1, 1]) {
     box(g, 0.13, 0.62, d * 0.72, x + sx * (w / 2 - 0.3), y + h * 0.3, z, M.wallWhite, { cast: false });
