@@ -180,7 +180,7 @@ function buildHall(g, cfg, blockers, surfaces) {
   });
 
   // 门前石阶：紧贴门槛铺设，高层用两级、低台基用一级，踏面 0.5m
-  const stepCount = plinth > 0.8 ? 3 : plinth > 0.5 ? 2 : 1;
+  const stepCount = plinth > 1.1 ? 4 : plinth > 0.8 ? 3 : plinth > 0.5 ? 2 : 1;
   const stepH = plinth / stepCount;
   const stepHalf = (doorW + 1.4) / 2;
   for (let i = 0; i < stepCount; i++) {
@@ -569,6 +569,20 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
     for (const dx of [-1.8, -0.6, 0.6, 1.8]) {
       box(g2, 0.1, 0.46, 0.1, side * 5.2 + dx, fp + 3.62, frontZ + 0.72, M.railingTeal, { cast: false });
     }
+
+    // 侧亭上层：白墙亭身 + 青色栏杆 + 第二层屋顶
+    box(g2, 4.0, 1.2, 2.15, side * 5.2, fp + 4.85, frontZ + 0.18, M.wallWhite, { cast: false });
+    for (const dx of [-1.5, 1.5]) {
+      box(g2, 0.14, 1.2, 2.2, side * 5.2 + dx, fp + 4.85, frontZ + 0.18, M.woodDark, { cast: false });
+    }
+    box(g2, 4.3, 0.12, 0.12, side * 5.2, fp + 5.38, frontZ + 1.2, M.railingTeal, { cast: false });
+    for (const dx of [-1.7, -0.55, 0.55, 1.7]) {
+      box(g2, 0.1, 0.42, 0.1, side * 5.2 + dx, fp + 5.18, frontZ + 1.2, M.railingTeal, { cast: false });
+    }
+    hippedRoof(g2, {
+      x: side * 5.2, y: fp + 5.45, z: frontZ + 0.18,
+      width: 4.35, depth: 2.55, rise: 0.78,
+    });
   }
 
   // 二层楼身
