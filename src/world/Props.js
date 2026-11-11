@@ -111,27 +111,42 @@ export function roofDetails(parent, { x = 0, y = 0, z = 0, width, depth, rise })
       topY + 0.68, z, ridge, { cast: false });
   }
 
-  // 连续檐口板 + 四角短戗脊，避免满屋顶黑色碎块。
+  // 用瓦色檐口分段起翘，外侧再压一条深色檐口线。
   for (const sz of [-1, 1]) {
-    box(parent, width + 0.3, 0.12, 0.18,
-      x, y + 0.1, z + sz * (depth / 2 + 0.04), edge, { cast: false });
+    for (let i = -4; i <= 4; i++) {
+      const k = i / 4;
+      const lift = k * k * 0.3;
+      const tile = box(parent, width / 7.8, 0.15, 0.28,
+        x + k * (width / 2), y + 0.1 + lift,
+        z + sz * (depth / 2 + 0.05), M.roof, { cast: false });
+      tile.rotation.z = k * 0.22;
+      box(parent, width / 7.8, 0.07, 0.08,
+        x + k * (width / 2), y + 0.18 + lift,
+        z + sz * (depth / 2 + 0.19), edge, { cast: false });
+    }
   }
   for (const sx of [-1, 1]) {
-    box(parent, 0.18, 0.12, depth + 0.3,
-      x + sx * (width / 2 + 0.04), y + 0.1, z, edge, { cast: false });
+    for (let i = -2; i <= 2; i++) {
+      const k = i / 2;
+      const lift = k * k * 0.22;
+      const tile = box(parent, 0.27, 0.15, depth / 4.6,
+        x + sx * (width / 2 + 0.05), y + 0.1 + lift,
+        z + k * (depth / 2), M.roof, { cast: false });
+      tile.rotation.x = -k * 0.18;
+      box(parent, 0.08, 0.07, depth / 4.6,
+        x + sx * (width / 2 + 0.19), y + 0.18 + lift,
+        z + k * (depth / 2), edge, { cast: false });
+    }
   }
 
-  // 四角戗脊：从檐角短促上挑，只保留四个角。
+  // 四角用三级小块收头，形成起翘檐角而不是长黑刺。
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
-      const a = new THREE.Vector3(
-        x + sx * width * 0.42, y + 0.1, z + sz * depth * 0.46,
-      );
-      const b = new THREE.Vector3(
-        x + sx * width * 0.52, y + 0.32, z + sz * depth * 0.54,
-      );
-      beamBetween(parent, a, b, 0.045, edge, 4);
-      box(parent, 0.14, 0.2, 0.14, b.x, b.y + 0.04, b.z, ridge, { cast: false });
+      const bx = x + sx * width * 0.52;
+      const bz = z + sz * depth * 0.54;
+      box(parent, 0.34, 0.14, 0.3, bx, y + 0.22, bz, M.roof, { cast: false });
+      box(parent, 0.26, 0.12, 0.24, bx + sx * 0.04, y + 0.33, bz + sz * 0.03, ridge, { cast: false });
+      box(parent, 0.14, 0.18, 0.14, bx + sx * 0.06, y + 0.45, bz + sz * 0.05, ridge, { cast: false });
     }
   }
 }

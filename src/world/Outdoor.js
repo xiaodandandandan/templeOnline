@@ -131,6 +131,25 @@ function buildPreview(g2, cfg, { baseY, plinth, wallH, doorW }) {
   g2.add(light);
 }
 
+function buildVeranda(g2, { w, d, fp }) {
+  const depth = 2.1;
+  const roofY = fp + 3.15;
+  for (let x = -w / 2 + 1.2; x <= w / 2 - 1.0; x += 2.2) {
+    if (Math.abs(x) < 2.8) continue;
+    column(g2, { x, y: fp, z: d / 2 + 1.2, h: 3.0, radius: 0.16, mat: M.lacquer });
+  }
+  box(g2, w - 0.5, 0.12, 0.14, 0, roofY - 0.12, d / 2 + 2.25, M.railingTeal, { cast: false });
+  for (let x = -w / 2 + 1.2; x <= w / 2 - 1.0; x += 4.4) {
+    box(g2, 0.1, 0.55, 0.1, x, roofY - 0.42, d / 2 + 2.25, M.railingTeal, { cast: false });
+  }
+  hippedRoof(g2, {
+    y: roofY, z: d / 2 + 1.25, width: w + 0.8, depth: depth + 0.5, rise: 0.62,
+  });
+  roofDetails(g2, {
+    y: roofY, z: d / 2 + 1.25, width: w + 0.8, depth: depth + 0.5, rise: 0.62,
+  });
+}
+
 function buildHall(g, cfg, blockers, surfaces) {
   const { x, z, w, d, h, platform } = cfg;
   const ry = cfg.ry || 0;
@@ -300,6 +319,13 @@ function buildHall(g, cfg, blockers, surfaces) {
       side < 0 ? -frontStepHalf : foundHalfW,
       d / 2 - .05, foundHalfD);
   }
+
+  addLocalSurface(surfaces, cfg, {
+    minX: -w / 2 + 0.6, maxX: w / 2 - 0.6,
+    minZ: -d / 2 + 0.15, maxZ: d / 2 + 0.3,
+    y: fp,
+  });
+  if (ry) buildVeranda(g2, { w, d, fp });
 }
 
 /* ------------------------- 山门（按径山寺实景重建） ------------------------- */
@@ -592,6 +618,10 @@ function buildGate(g, cfg, blockers, surfaces, interactives, updaters) {
     box(g2, 4.0, 1.2, 2.15, side * 5.2, fp + 4.85, frontZ + 0.18, M.wallWhite, { cast: false });
     for (const dx of [-1.5, 1.5]) {
       box(g2, 0.14, 1.2, 2.2, side * 5.2 + dx, fp + 4.85, frontZ + 0.18, M.woodDark, { cast: false });
+    }
+    for (const dx of [-0.95, 0, 0.95]) {
+      box(g2, 0.5, 0.62, 0.06, side * 5.2 + dx, fp + 4.85, frontZ + 1.27, M.black, { cast: false });
+      box(g2, 0.06, 0.62, 0.08, side * 5.2 + dx, fp + 4.85, frontZ + 1.3, M.woodDark, { cast: false });
     }
     box(g2, 4.3, 0.12, 0.12, side * 5.2, fp + 5.38, frontZ + 1.2, M.railingTeal, { cast: false });
     for (const dx of [-1.7, -0.55, 0.55, 1.7]) {
